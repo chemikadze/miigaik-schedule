@@ -12,6 +12,7 @@ from google.appengine.ext import db
 
 MIIGAIK_SCHEDULE_URL = 'http://studydep.miigaik.ru/semestr/index.php'
 MIIGAIK_HOSTNAME = urlsplit(MIIGAIK_SCHEDULE_URL)[1]
+REQUEST_TIMEOUT = 120
 
 
 class RequestError(Exception):
@@ -35,7 +36,7 @@ def request_post(url, parameters=dict()):
     spliturl = urlsplit(url)
     host = spliturl.hostname
     port = spliturl.port
-    http = httplib.HTTPConnection(host, port)
+    http = httplib.HTTPConnection(host, port, timeout=REQUEST_TIMEOUT)
     post_data = '&'.join('%s=%s' % parameter for parameter in parameters.items())
     http.request('POST', url, body=post_data)
     resp = http.getresponse()
