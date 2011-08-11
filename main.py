@@ -15,7 +15,6 @@ MIIGAIK_SCHEDULE_URL = 'http://studydep.miigaik.ru/semestr/index.php'
 MIIGAIK_HOSTNAME = urlsplit(MIIGAIK_SCHEDULE_URL)[1]
 REQUEST_TIMEOUT = 120
 
-
 class RequestError(Exception):
     def __init__(self, descr, response, body):
         super(Exception, self).__init__()
@@ -32,14 +31,14 @@ def render_template(template_name, context=dict()):
     template_path = os.path.join(self_root, template_name)
     return template.render(template_path, context)
 
-def request_post(url, parameters=dict()):
+def request_post(url, parameters=dict(), headers=dict()):
     spliturl = urlsplit(url)
     host = spliturl.hostname
     port = spliturl.port
     http = httplib.HTTPConnection(host, port, timeout=REQUEST_TIMEOUT)
     post_data = '&'.join('%s=%s' % parameter for parameter in parameters.items())
     try:
-        http.request('POST', url, body=post_data)
+        http.request('POST', url, body=post_data, headers=headers)
         resp = http.getresponse()
         body = resp.read()
     except DeadlineExceededError:
@@ -73,7 +72,7 @@ class LinkHandler(ShortcutHandler):
         query_u = parse_qs(self.request.query_string)
         query = dict((k, u[0].decode('utf8').encode('cp1251')) for k, u in query_u.items())
         try:
-            resp, body = request_post(MIIGAIK_SCHEDULE_URL, query)
+            resp, body = request_post(MIIGAIK_SCHEDULE_URL, query, {'referer':self.request.url})
         except RequestError, e:
             self.render_to_response('templates/request_error.html', {'error':e})
             return
