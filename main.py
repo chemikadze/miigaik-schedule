@@ -8,6 +8,7 @@ from cgi import parse_qs, parse_qsl
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template, util
 from google.appengine.ext import db
+from google.appengine.runtime import DeadlineExceededError
 
 
 MIIGAIK_SCHEDULE_URL = 'http://studydep.miigaik.ru/semestr/index.php'
@@ -23,8 +24,7 @@ class RequestError(Exception):
         self.body = body
 
     def __str__(self):
-        return 'RequestError %s: %s\b%s' % (self.descr, self.response, self.body)
-
+        return 'RequestError %s: HTTPResponse: %s\nReply from server: %s' % (self.descr, self.response, self.body)
 
 
 def render_template(template_name, context=dict()):
@@ -38,9 +38,12 @@ def request_post(url, parameters=dict()):
     port = spliturl.port
     http = httplib.HTTPConnection(host, port, timeout=REQUEST_TIMEOUT)
     post_data = '&'.join('%s=%s' % parameter for parameter in parameters.items())
-    http.request('POST', url, body=post_data)
-    resp = http.getresponse()
-    body = resp.read()
+    try:
+        http.request('POST', url, body=post_data)
+        resp = http.getresponse()
+        body = resp.read()
+    except DeadlineExceededError:
+        raise RequestError('Can not perform request: time exceed. Please try later', None, '')
     if resp.status == 200:
         return resp, body
     else:
