@@ -1,9 +1,13 @@
 #!/usr/bin/env python
 
+import sys
 import httplib
 import os
 from urlparse import urlsplit, urlunsplit
 from cgi import parse_qs, parse_qsl
+from xml.dom import minidom
+import re
+from pyexpat import ExpatError
 
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template, util
@@ -12,7 +16,7 @@ from google.appengine.runtime import DeadlineExceededError
 
 
 MIIGAIK_SCHEDULE_URL = 'http://studydep.miigaik.ru/semestr/index.php'
-MIIGAIK_HOSTNAME = urlsplit(MIIGAIK_SCHEDULE_URL)[1]
+MIIGAIK_HOSTNAME, MIIGAIK_SCHEDULE_PATH = urlsplit(MIIGAIK_SCHEDULE_URL)[1:3]
 REQUEST_TIMEOUT = 120
 
 class RequestError(Exception):
@@ -56,7 +60,25 @@ class ShortcutHandler(webapp.RequestHandler):
 
 class MainHandler(ShortcutHandler):
     def get(self):
-        self.render_to_response('templates/main.html')
+        url = MIIGAIK_SCHEDULE_URL
+        spliturl = urlsplit(url)
+        host = spliturl.hostname
+        port = spliturl.port
+        path = spliturl[2]
+        http = httplib.HTTPConnection(host, port, timeout=REQUEST_TIMEOUT)
+        try:
+            http.request('GET', path)
+            resp = http.getresponse()
+            body_data = resp.read().decode('cp1251').encode('utf8')
+            result = re.findall(r'(<form.*form>)', body_data, re.S) # fucking php fans don't gimme valid html
+            form_body = result[0]
+            form_body = re.sub(r'action="index.php"', 'action="/link"', form_body)
+            form_body = re.sub(r'method="post"', 'metod="GET"', form_body)
+        except DeadlineExceededError:
+            raise RequestError('Can not perform request: time exceed. Please try later', None, '')
+        except (IndexError, ExpatError), e:
+            raise RequestError('Can not load form data: malformed web page', None, '')
+        self.render_to_response('templates/main.html', {'form': form_body})
 
 
 class RedirectHandler(webapp.RequestHandler):
