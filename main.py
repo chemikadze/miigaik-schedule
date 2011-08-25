@@ -27,7 +27,7 @@ class RequestError(Exception):
         self.body = body
 
     def __str__(self):
-        return 'RequestError %s: HTTPResponse: %s\nReply from server: %s' % (self.descr, self.response, self.body)
+        return 'RequestError %s: <br/>HTTPResponse: %sReply from server: %s' % (self.descr, self.response, self.body)
 
 
 def render_template(template_name, context=dict()):
@@ -53,12 +53,23 @@ def request_post(url, parameters=dict(), headers=dict()):
         raise RequestError('Error requesting page', resp, body)
 
 
+def polite(f):
+    def wrapper(*argv):
+        try:
+            f(*argv)
+        except RequestError, e:
+            print render_template('templates/request_error.html', {'error': e})
+        except Exception, e:
+            print render_template('templates/request_error.html', {'error': e})
+    return wrapper
+
 class ShortcutHandler(webapp.RequestHandler):
     def render_to_response(self, template_name, context=dict()):
         self.response.out.write(render_template(template_name, context))
 
 
 class MainHandler(ShortcutHandler):
+    @polite
     def get(self):
         url = MIIGAIK_SCHEDULE_URL
         spliturl = urlsplit(url)
@@ -82,6 +93,7 @@ class MainHandler(ShortcutHandler):
 
 
 class RedirectHandler(webapp.RequestHandler):
+    @polite
     def get(self):
         scheme, netloc, path, query, fragment = urlsplit(self.request.url)
         netloc = MIIGAIK_HOSTNAME # TODO: use referer here
@@ -90,13 +102,14 @@ class RedirectHandler(webapp.RequestHandler):
 
 
 class LinkHandler(ShortcutHandler):
+    @polite
     def get(self): # TODO: JS!
         query_u = parse_qs(self.request.query_string)
         query = dict((k, u[0].decode('utf8').encode('cp1251')) for k, u in query_u.items())
         try:
-            resp, body = request_post(MIIGAIK_SCHEDULE_URL, query, {'referer':self.request.url})
+            resp, body = request_post(MIIGAIK_SCHEDULE_URL, query, {'referer': self.request.url})
         except RequestError, e:
-            self.render_to_response('templates/request_error.html', {'error':e})
+            self.render_to_response('templates/request_error.html', {'error': e})
             return
         self.response.out.write(body.decode('cp1251').encode('utf8'))
 
@@ -105,7 +118,7 @@ def main():
     application = webapp.WSGIApplication([('/', MainHandler),
                                           ('/link', LinkHandler),
                                           ('/.*', RedirectHandler)],
-                                         debug=True)
+                                         debug=False)
     util.run_wsgi_app(application)
 
 
