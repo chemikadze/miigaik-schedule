@@ -1,3 +1,5 @@
+# -:- coding: utf-8 -:-
+
 from hashlib import sha1
 
 
@@ -9,9 +11,24 @@ class WeekType(object):
     def __repr__(self):
         return 'Week("%s")' % self.name
 
+    def __eq__(self, other):
+        return self.name == other.name
+
 
 UPPER_WEEK = WeekType("upper")
 LOWER_WEEK = WeekType("lower")
+
+
+WEEK_DAYS = (
+    (u"Понедельник", 1),
+    (u"Вторник", 2),
+    (u"Среда", 3),
+    (u"Четверг", 4),
+    (u"Пятница", 5),
+    (u"Суббота", 6)
+)
+
+MAP_DAY_STR = dict((id, s) for (s, id) in WEEK_DAYS)
 
 
 class GroupId(object):
@@ -46,6 +63,9 @@ class DaySchedule(object):
 
     def __len__(self):
         return len(self.__lessons)
+
+    def list(self):
+        return [lesson for lesson in self.__lessons if lesson]
 
 
 class Lesson(object):

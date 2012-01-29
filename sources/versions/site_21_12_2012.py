@@ -35,14 +35,17 @@ class SiteSource(DataSource):
         self._years = pull_out_list('kurs')
         self._groups = pull_out_list('grup')
 
+    def __externalize(self, list):
+        return [x['value'] for x in list]
+
     def faculties(self):
-        return self._faculties
+        return self.__externalize(self._faculties)
 
     def years(self):
-        return self._years
+        return self.__externalize(self._years)
 
     def groups(self):
-        return self._groups
+        return self.__externalize(self._groups)
 
     def group_data(self, group_id):
         # TODO: caching
@@ -51,8 +54,8 @@ class SiteSource(DataSource):
         return self.parse_table(table)
 
     def table_is_valid(self, table):
-        t = table.findAll('th')
-        return len(table.findAll('th')) == self.ROWCOUNT
+        return len(table.findAll('th')) == self.ROWCOUNT and \
+               table.tr and table.tr.th
 
     def choose_table(self, data):
         for table in data.findAll('table'):
@@ -92,7 +95,10 @@ class SiteSource(DataSource):
         for row in table.findAll('tr'):
             cells = row.findAll('td')
             if len(cells) == self.ROWCOUNT:
-                lesson = self.row_to_lesson(cells)
+                try:
+                    lesson = self.row_to_lesson(cells)
+                except ValueError:
+                    continue
                 if lesson.week_type == UPPER_WEEK:
                     utemp[lesson.week_day].set_lesson(lesson.number, lesson)
                 else:
@@ -105,9 +111,9 @@ class SiteSource(DataSource):
 
     def post_params_for_group(self, group_id):
         return {
-            "fak": group_id.faculty["value"].encode('cp1251'),
-            "kurs": group_id.year["value"].encode('cp1251'),
-            "grup": group_id.group["value"].encode('cp1251'),
+            "fak": group_id.faculty.encode('cp1251'),
+            "kurs": group_id.year.encode('cp1251'),
+            "grup": group_id.group.encode('cp1251'),
             "ok": u"Искать".encode('cp1251')
         }
 

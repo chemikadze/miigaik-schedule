@@ -1,0 +1,26 @@
+{% extends "desktop/base.html" %}
+
+{% block content %}
+    <h4>Schedule for {{ schedule_descr }}</h4>
+
+    <table>
+        {% for day in days %}
+
+            {% if day %}
+
+                <tr><th colspan="4">{{ day|first|get_week }}</th></tr>
+                {% for lesson in day %}
+                    <tr>
+                        <td>{{ lesson.number }}</td>
+                        <td>{{ lesson.subject }}</td>
+                        <td>{{ lesson.tutor }}</td>
+                        <td>{{ lesson.auditory }}</td>
+                    </tr>
+                {% endfor %}
+
+            {% endif %}
+
+        {% endfor %}
+    </table>
+
+{% endblock %}
