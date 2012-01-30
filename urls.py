@@ -19,16 +19,19 @@ urlpatterns = patterns('',
 
     url(r'^schedule/$', 'django_schedule.views.main_handler'),
 
-    url(r'^schedule/([^/]+)/([^/]+)/([^/]+)/$', 'django_schedule.views.week_schedule'),
-    url(r'^schedule/([^/]+)/([^/]+)/([^/]+)/both/$', 'django_schedule.views.week_schedule'),
-    url(r'^schedule/([^/]+)/([^/]+)/([^/]+)/upper/$',
-        'django_schedule.views.week_schedule', {'week': UPPER_WEEK}),
-    url(r'^schedule/([^/]+)/([^/]+)/([^/]+)/lower/$',
-        'django_schedule.views.week_schedule', {'week': LOWER_WEEK}),
-    url(r'^schedule/([^/]+)/([^/]+)/([^/]+)/both/([^/]+)/$', 'django_schedule.views.day_schedule'),
-    url(r'^schedule/([^/]+)/([^/]+)/([^/]+)/upper/([^/]+)/$',
-        'django_schedule.views.day_schedule', {'week': UPPER_WEEK}),
-    url(r'^schedule/([^/]+)/([^/]+)/([^/]+)/lower/([^/]+)/$',
-        'django_schedule.views.day_schedule', {'week': LOWER_WEEK})
+    url(r'^schedule/([^/]+)/([^/]+)/([^/]+)/$',
+        'django_schedule.views.schedule_common', {'week_txt': 'both'}),
+
+
+    url(r'^schedule/([^/]+)/([^/]+)/([^/]+)/today/$',
+        'django_schedule.views.today'),
+
+    # TODO match both|upper|lower
+    url(r'^schedule/([^/]+)/([^/]+)/([^/]+)/([^/]+)/$',
+        'django_schedule.views.schedule_common'),
+
+    # TODO match both|upper|lower
+    url(r'^schedule/([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/$',
+        'django_schedule.views.schedule_common'),
 
 )

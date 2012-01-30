@@ -39,13 +39,13 @@ class SiteSource(DataSource):
         return [x['value'] for x in list]
 
     def faculties(self):
-        return self.__externalize(self._faculties)
+        return self._faculties
 
     def years(self):
-        return self.__externalize(self._years)
+        return self._years
 
     def groups(self):
-        return self.__externalize(self._groups)
+        return self._groups
 
     def group_data(self, group_id):
         # TODO: caching

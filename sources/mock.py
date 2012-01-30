@@ -3,29 +3,39 @@ from site import GroupDataContainer
 
 class MockDataSource(DataSource):
 
+    def __init__(self):
+        def itemize(x):
+            return {'text': x, 'value': x}
+        self._faculties = [itemize(x) for x in ['FoAC', 'FoAF']]
+        self._years =[itemize(x) for x in map(str, xrange(1, 6))]
+        self._groups = [itemize('%s_%s' % (fac['value'], yr['value']))
+                          for fac in self.faculties()
+                            for yr in self.years()]
+
     def faculties(self):
-        return [x for x in ['FoAC', 'FoAF']]
+        return self._faculties
 
     def years(self):
-        return map(str, xrange(1, 5))
+        return self._years
 
     def groups(self):
-        return [ '%s_%s' % (fac, yr)
-                    for fac in self.faculties()
-                       for yr in self.years()]
+        return self._groups
+
+    def __externalize(self, list):
+        return [x['value'] for x in list]
 
     def group_data(self, group_id):
-        lower = self.__less_for_params(group_id.faculty, group_id.year,
+        lower = self.__week_for_params(group_id.faculty, group_id.year,
             group_id.group, LOWER_WEEK)
-        upper = self.__less_for_params(group_id.faculty, group_id.year,
+        upper = self.__week_for_params(group_id.faculty, group_id.year,
             group_id.group, UPPER_WEEK)
         return GroupDataContainer(upper, lower)
 
 
-    def __less_for_params(self, f, y, g, w):
+    def __week_for_params(self, f, y, g, w):
         return [
             (day, self.__day(f, y, g, w, day))
-            for day in xrange(1, 6-int(y)+1)
+            for day in xrange(w == UPPER_WEEK and 1 or 0, 6-int(y)+1, 2)
         ]
 
     def __day(self, f, y, g, w, d):
