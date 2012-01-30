@@ -46,16 +46,20 @@ def get_weekday(day):
 def get_weekday_id(day):
     return day.week_day
 
+@register.filter
+def is_today(day):
+    return str(day) == str(current_weekday())
+
 
 def get_template(request, name):
-    return 'basic/' + name
+    return 'desktop/' + name
 
 
 class SelectGroupFrom(forms.Form):
 
-    faculty = forms.ChoiceField()
-    year = forms.ChoiceField()
-    group = forms.ChoiceField()
+    faculty = forms.ChoiceField(label="Факультет")
+    year = forms.ChoiceField(label="Курс")
+    group = forms.ChoiceField(label="Группа")
 
     def __init__(self, *args, **kwargs):
         super(forms.Form, self).__init__(*args, **kwargs)
@@ -73,17 +77,19 @@ def home(request):
 
 
 def main_handler(request):
-    return HttpResponseRedirect('/schedule/%(faculty)s/%(year)s/%(group)s/'
+    return HttpResponseRedirect('/schedule/%(faculty)s/%(year)s/%(group)s/current'
         % request.GET)
 
 
-def today(request, faculy, year, group):
+def today(request, faculty, year, group):
     week_txt = current_week().name
-    day_txt = localtime().tm_wday + 1
-    return schedule_common(request, faculy, year, group, week_txt, day_txt)
+    day_txt = current_weekday()
+    schedule = create_schedule_common(request, faculty, year, group, week_txt, day_txt)
+    schedule['today'] = True
+    return render_to_response(get_template(request, 'days.html'), schedule)
 
 
-def schedule_common(request, faculty, year, group, week_txt, day_txt=None):
+def create_schedule_common(request, faculty, year, group, week_txt, day_txt=None):
     day = day_txt and int(day_txt) or -1
     group_data = SOURCE.group_data(GroupId(faculty, year, group))
     try:
@@ -115,11 +121,24 @@ def schedule_common(request, faculty, year, group, week_txt, day_txt=None):
             week_data = [d.list() for (_, d) in week_create(raw_week_data)]
         else:
             week_data = [day.list() for (_, day) in raw_week_data]
-
-    return render_to_response(get_template(request, 'days.html'),
-           {'days': week_data,
+    week_data = [d for d in week_data if d]
+    if not week_data:
+        raise Http404()
+    lessons = map(len, week_data)
+    stats = {'days': len(lessons),
+             'lessons': sum(lessons),
+             'avg_lessons': sum(lessons)/len(lessons),
+             'min_lessons': min(lessons),
+             'max_lessons': max(lessons)}
+    return {'days': week_data,
             'faculty': faculty,
             'year': year,
             'group': group,
             'week_url': week_txt,
-            'week_ru': week_txt_ru})
+            'day': day_txt,
+            'week_ru': week_txt_ru,
+            'stats': stats}
+
+def schedule_common(request, faculty, year, group, week_txt, day_txt=None):
+    return render_to_response(get_template(request, 'days.html'),
+        create_schedule_common(request, faculty, year, group, week_txt, day_txt))

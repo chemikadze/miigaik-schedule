@@ -51,3 +51,8 @@ def current_week():
     now = datetime.now(FixedOffset(4*60, 'Europe/Moscow'))
     weeknum = int(now.strftime('%W'))
     return (weeknum % 2) and LOWER_WEEK or UPPER_WEEK
+
+def current_weekday():
+    now = datetime.now(FixedOffset(4*60, 'Europe/Moscow'))
+    weeknum = int(now.strftime('%w'))
+    return weeknum

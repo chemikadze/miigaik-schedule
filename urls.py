@@ -1,4 +1,4 @@
-from django.conf.urls.defaults import patterns, include, url
+from django.conf.urls.defaults import *
 
 # Uncomment the next two lines to enable the admin:
 # from django.contrib import admin
@@ -15,23 +15,23 @@ urlpatterns = patterns('',
 
     # Uncomment the next line to enable the admin:
     # url(r'^admin/', include(admin.site.urls)),
-    url(r'^$', 'django_schedule.views.home'),
+    (r'^$', 'django_schedule.views.home'),
 
-    url(r'^schedule/$', 'django_schedule.views.main_handler'),
+    (r'^schedule/$', 'django_schedule.views.main_handler'),
 
-    url(r'^schedule/([^/]+)/([^/]+)/([^/]+)/$',
+    (r'^schedule/([^/]+)/([^/]+)/([^/]+)/$',
         'django_schedule.views.schedule_common', {'week_txt': 'both'}),
 
 
-    url(r'^schedule/([^/]+)/([^/]+)/([^/]+)/today/$',
+    (r'^schedule/([^/]+)/([^/]+)/([^/]+)/today/$',
         'django_schedule.views.today'),
 
     # TODO match both|upper|lower
-    url(r'^schedule/([^/]+)/([^/]+)/([^/]+)/([^/]+)/$',
+    (r'^schedule/([^/]+)/([^/]+)/([^/]+)/([^/]+)/$',
         'django_schedule.views.schedule_common'),
 
     # TODO match both|upper|lower
-    url(r'^schedule/([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/$',
+    (r'^schedule/([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/$',
         'django_schedule.views.schedule_common'),
 
 )

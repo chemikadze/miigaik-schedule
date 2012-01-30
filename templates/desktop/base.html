@@ -1,0 +1,47 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+        "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+    <title>Расписание занятий МИИГАиК</title>
+    <link rel="stylesheet" href="http://twitter.github.com/bootstrap/1.4.0/bootstrap.min.css">
+</head>
+<body>
+
+<div class="topbar">
+    <div class="fill">
+        <div class="container">
+            <a class="brand" href="/">Расписание МИИГАиК</a>
+            <ul class="nav">
+                {% block topbar %}
+                {% endblock %}
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+
+    <div class="content">
+        <div class="page-header">
+            <h1>Page name <small>Supporting text or tagline</small></h1>
+        </div>
+        <div class="row">
+            <div class="span10">
+                {% block content %}
+                {% endblock %}
+            </div>
+            <div class="span4">
+                {% block sidebar %}
+                {% endblock %}
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>© <a href="mailto:chemikadze@gmail.com">chemikadze</a> 2012.</p>
+    </footer>
+
+</div>
+
+</body>
+</html>

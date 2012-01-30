@@ -1,4 +1,4 @@
-application: miigaik-schedule
+application: miigaik-schedule-ng
 version: 1
 runtime: python
 api_version: 1

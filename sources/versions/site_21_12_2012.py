@@ -64,6 +64,7 @@ class SiteSource(DataSource):
         raise wrong_format(MIIGAIK_SCHEDULE_URL, 'can not find valid table')
 
     def row_to_lesson(self, cols):
+        # TODO: remove HTML tags
         return Lesson(
             self.parse_week_day(cols[0].text.strip()),
             int(cols[1].text.split('-')[0]),

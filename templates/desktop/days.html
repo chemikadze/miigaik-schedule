@@ -1,0 +1,60 @@
+{% extends "desktop/base.html" %}
+
+{% block topbar %}
+    <li {% if week_url == "current" and not today %}class="active"{% endif %}><a href="{% url django_schedule.views.schedule_common faculty year group 'current' %}">Текущая</a></li>
+    <li {% if week_url == "lower" and not today %}class="active"{% endif %}><a href="{% url django_schedule.views.schedule_common faculty year group 'lower' %}">Нижняя</a></li>
+    <li {% if week_url == "upper" and not today %}class="active"{% endif %}><a href="{% url django_schedule.views.schedule_common faculty year group 'upper' %}">Верхняя</a></li>
+    <li {% if week_url == "both" and not today %}class="active"{% endif %}><a href="{% url django_schedule.views.schedule_common faculty year group 'both' %}">Все вместе</a></li>
+    <li {% if today %}class="active"{% endif %}><a href="{% url django_schedule.views.today faculty year group %}">Сегодня</a></li>
+{% endblock %}
+
+{% block content %}
+    <h4>Расписание для {{ faculty }}, {{ year }} курс, группа {{ group }}.</h4>
+
+    <table>
+        {% for day in days %}
+
+            {% if day %}
+
+                <tr>
+                    <th colspan="{% if week_url == both %}5{% else %}4{% endif %}">
+                        <a href="{% url django_schedule.views.schedule_common faculty year group week_url day|first|get_weekday_id %}">{{ day|first|get_weekday }}</a>
+                    </th>
+                </tr>
+                {% for lesson in day %}
+                    <tr>
+                        <td>{{ lesson.number }}</td>
+                        <td>{{ lesson.subject }}</td>
+                        <td>{{ lesson.tutor }}</td>
+                        <td>{{ lesson.auditory }}</td>
+                        <td>{{ lesson.type }}</td>
+                        <td>{{ lesson.subdivision }}</td>
+                        {% if week_url == 'both' %}
+                            {% if lesson.week_type.name == 'upper' %}
+                                <td>верхняя</td>
+                            {% else %}
+                                <td>нижняя</td>
+                            {% endif %}
+                        {% endif %}
+                    </tr>
+                {% endfor %}
+
+            {% endif %}
+
+        {% endfor %}
+    </table>
+
+{% endblock %}
+
+{% block sidebar %}
+    <h5>Статистика</h5>
+    <table>
+        <tr><td>Пар:</td><td>{{ stats.lessons }}</td></tr>
+        {% if not day %}
+            <tr><td>Учебных дней:</td><td>{{ stats.days }}</td></tr>
+            <tr><td>В среднем в день: </td><td>{{ stats.avg_lessons }}</td></tr>
+            <tr><td>Максимум в день:</td><td>{{ stats.max_lessons }}</td></tr>
+            <tr><td>Минимум в день:</td><td>{{ stats.min_lessons }}</td></tr>
+        {% endif %}
+    </table>
+{% endblock %}
