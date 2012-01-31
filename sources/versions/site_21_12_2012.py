@@ -10,7 +10,7 @@ import HTMLParser
 _parser = HTMLParser.HTMLParser()
 
 def _un(string):
-    return _parser.unescape(string)
+    return _parser.unescape(string).replace('&nbsp;', ' ')
 
 MIIGAIK_SCHEDULE_URL = 'http://studydep.miigaik.ru/semestr/index.php'
 

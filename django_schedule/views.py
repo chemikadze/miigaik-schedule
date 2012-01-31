@@ -23,8 +23,8 @@ WEEK_NAME_MAP_RU = {'upper': u'верхняя', 'lower': u'нижняя',
 
 def render_response(request, template, *args, **kwargs):
     response = render_to_response(get_template(request, template),
-        *args,
         context_instance=RequestContext(request),
+        *args,
         **kwargs)
     iface = request.GET.get('iface')
     if iface:
