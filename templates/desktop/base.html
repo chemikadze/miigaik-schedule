@@ -3,7 +3,7 @@
 <html>
 <head>
     <title>Расписание занятий МИИГАиК</title>
-    <link rel="stylesheet" href="http://twitter.github.com/bootstrap/1.4.0/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/bootstrap.min.css">
     <style type="text/css">
             /* Override some defaults */
         html, body {
@@ -101,7 +101,10 @@
     </div>
 
     <footer>
-        <p>© <a href="mailto:chemikadze@gmail.com">chemikadze</a> 2012.</p>
+        <p>©
+            <a href="mailto:chemikadze@gmail.com">chemikadze</a> 2012.
+            <a href="{{ request.path }}?iface=mobile">Мобильная версия</a> | <a href="{{ request.path }}?iface=full">Полная версия</a>
+        </p>
     </footer>
 
 </div>

@@ -5,6 +5,13 @@ from sources.site import request_get, request_post, wrong_format, \
     parse_select_item, GroupDataContainer
 from BeautifulSoup import BeautifulSoup
 
+import HTMLParser
+
+_parser = HTMLParser.HTMLParser()
+
+def _un(string):
+    return _parser.unescape(string)
+
 MIIGAIK_SCHEDULE_URL = 'http://studydep.miigaik.ru/semestr/index.php'
 
 class SiteSource(DataSource):
@@ -66,14 +73,14 @@ class SiteSource(DataSource):
     def row_to_lesson(self, cols):
         # TODO: remove HTML tags
         return Lesson(
-            self.parse_week_day(cols[0].text.strip()),
-            int(cols[1].text.split('-')[0]),
-            cols[4].text,
-            cols[5].text,
-            cols[6].text,
-            self.parse_week_type(cols[2].text.strip()),
-            cols[3].text,
-            cols[7].text
+            self.parse_week_day(_un(cols[0].text).strip()),
+            int(_un(cols[1].text).split('-')[0]),
+            _un(cols[4].text),
+            _un(cols[5].text),
+            _un(cols[6].text),
+            self.parse_week_type(_un(cols[2].text).strip()),
+            _un(cols[3].text),
+            _un(cols[7].text)
         )
 
     def parse_week_type(self, text):

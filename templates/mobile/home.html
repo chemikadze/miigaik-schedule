@@ -1,10 +1,10 @@
-{% extends "desktop/base.html" %}
+{% extends "mobile/base.html" %}
 
-{% block content %}
-{% include "about.html" %}
+{% block extra %}
+    {% include "about.html" %}
 {% endblock %}
 
-{% block sidebar %}
+{% block content %}
     <form method="GET" action="schedule/" class="form-stacked">
 
         <ul class="form-ul">

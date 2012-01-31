@@ -1,0 +1,127 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+        "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+    <title>Расписание занятий МИИГАиК</title>
+
+    <link rel="stylesheet" href="/static/bootstrap.min.css">
+
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+    <style type="text/css">
+        body, html {
+            min-height: 320px;
+            margin: 0;
+            outline: 0;
+            padding: 0;
+            background-color: #eee;
+            -webkit-text-size-adjust: none;
+            font-size: 13px;
+        }
+
+        .topbar {
+            position: relative;
+        }
+
+        .main {
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .content {
+            position: relative;
+            margin-bottom: 5px;
+            padding: 5px;
+            background-color: white;
+            -webkit-border-radius: 6px 6px 6px 6px;
+            -moz-border-radius: 6px 6px 6px 6px;
+            border-radius: 6px 6px 6px 6px;
+            -webkit-box-shadow: 0 1px 2px rgba(0,0,0,.15);
+            -moz-box-shadow: 0 1px 2px rgba(0,0,0,.15);
+            box-shadow: 0 1px 2px rgba(0,0,0,.15);
+            max-width: 100%
+        }
+
+        ul.form-ul {
+            margin: 0 0 0px 0px;
+            list-style: none
+        }
+
+        .form-ul li {
+            margin: 0 0 5px 0px
+        }
+
+        .container {
+            width: 100%
+        }
+
+        ul.navigation-menu {
+            list-style: none;
+            margin: 0;
+        }
+        
+        .navigation-menu li {
+            border-top: 1px solid #DDD;
+            font-size: 150%;
+            padding: 10px;
+            margin: 0;
+        }
+        
+        li.active a {
+            color: #777
+        }
+
+        .expanded-lesson {
+            visibility: hidden;
+            display: none;
+        }
+
+
+    </style>
+</head>
+
+<body>
+
+<div class="topbar">
+    <div class="main">
+        <div class="fill">
+            <div class="container">
+                <a class="brand" href="/">Расписание МИИГАиК</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+
+    <div class="content">
+        {% block content %}
+        {% endblock %}
+    </div>
+
+    <div class="content">
+        {% block extra %}
+        {% endblock %}
+    </div>
+
+
+    <div class="content">
+        <h5>Меню</h5>
+        <ul class="navigation-menu">
+            {% block nav %}
+            {% endblock %}
+            <li><a href="http://studydep.miigaik.ru">Официальный сайт</a></li>
+            <li><a href="/">В начало</a></li>
+        </ul>
+    </div>
+
+    <footer>
+        <p>©
+            <a href="mailto:chemikadze@gmail.com">chemikadze</a> 2012.
+            <a href="{{ request.path }}?iface=mobile">Мобильная версия</a> | <a href="{{ request.path }}?iface=full">Полная версия</a>
+        </p>
+    </footer>
+</div>
+
+</body>
+</html>

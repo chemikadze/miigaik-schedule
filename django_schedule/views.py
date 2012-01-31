@@ -6,6 +6,7 @@ from django import forms
 from logging import getLogger
 from django.template.defaultfilters import register
 from time import localtime, strftime
+from django.template import RequestContext
 
 logger = getLogger('views')
 
@@ -18,6 +19,17 @@ SOURCE = CURRENT_SOURCE()
 WEEK_NAME_MAP = {'upper': UPPER_WEEK, 'lower': LOWER_WEEK, 'both': None}
 WEEK_NAME_MAP_RU = {'upper': u'верхняя', 'lower': u'нижняя',
                     'both': u'верняя и нижняя'}
+
+
+def render_response(request, template, *args, **kwargs):
+    response = render_to_response(get_template(request, template),
+        *args,
+        context_instance=RequestContext(request),
+        **kwargs)
+    iface = request.GET.get('iface')
+    if iface:
+        response.set_cookie('iface', iface, max_age=365*24*60*60)
+    return response
 
 
 def localized_week(week_txt):
@@ -52,7 +64,17 @@ def is_today(day):
 
 
 def get_template(request, name):
-    return 'desktop/' + name
+    forced = request.GET.get('iface') or request.COOKIES.get('iface')
+    if forced:
+        if forced == "mobile":
+            return 'mobile/' + name
+        else:
+            return 'desktop/' + name
+    else:
+        for fp in ('Android', 'iPhone', 'iPod'):
+            if fp in request.META['HTTP_USER_AGENT']:
+                return 'mobile/' + name
+        return 'desktop/' + name
 
 
 class SelectGroupFrom(forms.Form):
@@ -72,8 +94,7 @@ class SelectGroupFrom(forms.Form):
 
 def home(request):
     form = SelectGroupFrom()
-    return render_to_response(get_template(request, 'home.html'),
-                {'form': form})
+    return render_response(request, 'home.html', {'form': form})
 
 
 def main_handler(request):
@@ -86,7 +107,7 @@ def today(request, faculty, year, group):
     day_txt = current_weekday()
     schedule = create_schedule_common(request, faculty, year, group, week_txt, day_txt)
     schedule['today'] = True
-    return render_to_response(get_template(request, 'days.html'), schedule)
+    return render_response(request, 'days.html', schedule)
 
 
 def create_schedule_common(request, faculty, year, group, week_txt, day_txt=None):
@@ -123,9 +144,10 @@ def create_schedule_common(request, faculty, year, group, week_txt, day_txt=None
             week_data = [day.list() for (_, day) in raw_week_data]
     week_data = [d for d in week_data if d]
     if not week_data:
-        raise Http404()
-    lessons = map(len, week_data)
-    stats = {'days': len(lessons),
+        lessons = [0]
+    else:
+        lessons = map(len, week_data)
+    stats = {'days': len(week_data),
              'lessons': sum(lessons),
              'avg_lessons': sum(lessons)/len(lessons),
              'min_lessons': min(lessons),
@@ -140,5 +162,5 @@ def create_schedule_common(request, faculty, year, group, week_txt, day_txt=None
             'stats': stats}
 
 def schedule_common(request, faculty, year, group, week_txt, day_txt=None):
-    return render_to_response(get_template(request, 'days.html'),
+    return render_response(request, 'days.html',
         create_schedule_common(request, faculty, year, group, week_txt, day_txt))
