@@ -19,11 +19,12 @@
 {% endblock %}
 
 {% block sidebar %}
-    <form method="GET" action="schedule/">
-        <table>
-            {{ form.as_table }}
-            <tr><td></td><td><button class="btn" type="submit">Показать</button></td></tr>
-        </table>
+    <form method="GET" action="schedule/" class="form-stacked">
+
+        <ul class="form-ul">
+            {{ form.as_ul }}
+            <li><button class="btn" type="submit">Показать</button></li>
+        </ul>
 
     </form>
 {% endblock %}
