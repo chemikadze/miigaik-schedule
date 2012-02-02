@@ -159,6 +159,8 @@ def create_schedule_common(request, faculty, year, group, week_txt, day_txt=None
             'week_url': week_txt,
             'day': day_txt,
             'week_ru': week_txt_ru,
+            'current_week_url': current_week().name,
+            'current_week_ru': localized_week(current_week().name),
             'stats': stats}
 
 def schedule_common(request, faculty, year, group, week_txt, day_txt=None):
