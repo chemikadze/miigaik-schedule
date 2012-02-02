@@ -115,7 +115,7 @@ class SiteSource(DataSource):
             p = lst.items()
             p.sort(lambda t1, t2: cmp(t1[0], t2[0]))
             return [ i for i in p if len(i[1])>0 ]
-        return GroupDataContainer(conv(utemp), conv(ltemp))
+        return GroupDataContainer(group_id, conv(utemp), conv(ltemp))
 
     def post_params_for_group(self, group_id):
         return {
@@ -128,6 +128,15 @@ class SiteSource(DataSource):
     def soup_for_group(self, group_id):
         return BeautifulSoup(request_post(MIIGAIK_SCHEDULE_URL,
             parameters=self.post_params_for_group(group_id)))
+
+    @classmethod
+    def valid_comp(cls, year, group):
+        nums = {'I': 1, 'II': 2, 'III': 3, 'IV': 4, 'V': 5, 'VI': 6}
+        try:
+            return int(year['text']) == \
+                   nums.get(group['text'].split(' ')[1].split('-')[0], 0)
+        except ValueError:
+            return False
 
 
 DATA_SOURCE = SiteSource

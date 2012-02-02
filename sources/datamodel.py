@@ -36,6 +36,7 @@ class GroupId(object):
     """Identifier for group"""
 
     def __init__(self, faculty, year, group):
+        """Faculty, year and group are 'value' params"""
         self.faculty = faculty
         self.year = year
         self.group = group
@@ -79,7 +80,7 @@ class Lesson(object):
         self.auditory = auditory
         self.week_type = week_type
         self.subdivision = subdivision
-        self.type = type_
+        self.type_ = type_
 
 
 class DataSource(object):
@@ -98,10 +99,16 @@ class DataSource(object):
     def groups(self):
         raise NotImplementedError()
 
+    def valid_comp(self, year, group):
+        raise NotImplementedError()
+
 
 class GroupData(object):
 
     """Data for group (faculty+year+spec)"""
+
+    def group_id(self):
+        raise NotImplementedError()
 
     def week(self, week_type):
         """Schedule for upper/lower week

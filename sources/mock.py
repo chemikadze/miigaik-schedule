@@ -29,8 +29,11 @@ class MockDataSource(DataSource):
             group_id.group, LOWER_WEEK)
         upper = self.__week_for_params(group_id.faculty, group_id.year,
             group_id.group, UPPER_WEEK)
-        return GroupDataContainer(upper, lower)
+        return GroupDataContainer(group_id, upper, lower)
 
+    @classmethod
+    def valid_comp(self, year, group):
+        return True
 
     def __week_for_params(self, f, y, g, w):
         return [

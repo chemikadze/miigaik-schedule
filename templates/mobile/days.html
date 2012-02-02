@@ -34,11 +34,11 @@
                                             <b>(ниж.)</b>
                                         {% endif %}
                                     {% endif %}
-                                    {{ lesson.subject }} ({{ lesson.type }})</b>
+                                    {{ lesson.subject }} ({{ lesson.type_ }})</b>
                                     <br/>
                                     Каб. <b>{{ lesson.auditory }}</b>,
                                     {{ lesson.tutor }}
-                                    {{ lesson.subdivision }}
+                                    {% if lesson.subdivision %}П/г: {{ lesson.subdivision }}{% endif %}
                                 </div>
                             </td>
                         </tr>

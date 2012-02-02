@@ -48,9 +48,13 @@ def parse_select_item(soup):
 
 class GroupDataContainer(GroupData):
 
-    def __init__(self, upper, lower):
+    def __init__(self, group_id, upper, lower):
         """Create GroupData with precomputed lists"""
+        self.__group_id = group_id
         self.upper, self.lower = upper, lower
+
+    def group_id(self):
+        return self.__group_id
 
     def week(self, week_type):
         if week_type == UPPER_WEEK:
