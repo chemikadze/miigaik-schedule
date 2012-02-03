@@ -178,13 +178,21 @@ class GsqlDataSource(object):
     """Base class for some source of schedule data"""
 
     def __init__(self, version=None):
-        config_version = self.config_version()
-        if not version:
-            version = config_version or self.latest_version()
-        self.version = version
-        logging.debug('Using db version %s', self.version)
+        self.__forced_version = version
+        self.version = None
+        self.update_version()
+
+    def update_version(self):
+        old_version = self.version
+        if not self.__forced_version:
+            self.version = self.config_version() or self.latest_version()
+        else:
+            self.version = self.__forced_version
+        if old_version != self.version:
+            logging.debug('Using db version %s', self.version)
 
     def group_data(self, group_id):
+        self.update_version()
         table = GsqlGroupData.all().filter('version =', self.version)\
                                    .filter('group =', group_id.group)\
                                    .filter('year =', group_id.year)\
@@ -196,6 +204,7 @@ class GsqlDataSource(object):
             raise IndexError()
 
     def faculties(self):
+        self.update_version()
         return [ {'text': f.text, 'value': f.value}
         for f in GsqlFacultyDescriptor.all()
                         .filter('version = ', self.version)
@@ -203,12 +212,14 @@ class GsqlDataSource(object):
 
 
     def years(self):
+        self.update_version()
         return [ {'text': y.text, 'value': y.value}
         for y in GsqlYearDescriptor.all()
                         .filter('version = ', self.version)
                         .order('text')]
 
     def groups(self):
+        self.update_version()
         return [ {'text': g.text, 'value': g.value}
         for g in GsqlGroupDescriptor.all()
                         .filter('version = ', self.version)
