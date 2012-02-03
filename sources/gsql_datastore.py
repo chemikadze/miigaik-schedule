@@ -3,6 +3,7 @@ import json
 from google.appengine.ext import db
 from sources.datamodel import Lesson, LOWER_WEEK, UPPER_WEEK, DaySchedule, GroupData, GroupId
 from sources.site import GroupDataContainer
+import logging
 
 
 class NoVersionStoredException(Exception):
@@ -125,7 +126,8 @@ class GsqlGroupData(db.Model, GroupData):
     def from_group_data(cls, group_data):
         upper_week = group_data.week(UPPER_WEEK)
         lower_week = group_data.week(LOWER_WEEK)
-        if not upper_week and not lower_week:
+        if not any((i[1] for i in upper_week)) and \
+           not any((i[1] for i in lower_week)):
             return None
         obj = GsqlGroupData()
         obj.faculty = group_data.group_id().faculty
@@ -180,6 +182,7 @@ class GsqlDataSource(object):
         if not version:
             version = config_version or self.latest_version()
         self.version = version
+        logging.debug('Using db version %s', self.version)
 
     def group_data(self, group_id):
         table = GsqlGroupData.all().filter('version =', self.version)\
@@ -212,8 +215,12 @@ class GsqlDataSource(object):
                         .order('text')]
 
     @classmethod
-    def latest_version(cls):
-        versions = GsqlVersion.all().filter('valid =', True).order('-version').fetch(1)
+    def latest_version(cls, valid=True):
+        if valid:
+            versions = GsqlVersion.all().filter('valid =', True)\
+                                        .order('-version').fetch(1)
+        else:
+            versions = GsqlVersion.all().order('-version').fetch(1)
         for v in versions:
             return v.version
         else:
@@ -222,7 +229,7 @@ class GsqlDataSource(object):
     @classmethod
     def save_new_version(cls, groups, faculties, years, schedules):
         try:
-            version = cls.latest_version() + 1
+            version = cls.latest_version(valid=False) + 1
         except NoVersionStoredException:
             version = 1
         timestamp = datetime.now()

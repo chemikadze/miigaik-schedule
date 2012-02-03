@@ -112,11 +112,11 @@ def today(request, faculty, year, group):
 
 def create_schedule_common(request, faculty, year, group, week_txt, day_txt=None):
     day = day_txt and int(day_txt) or -1
-    group_data = SOURCE.group_data(GroupId(faculty, year, group))
     try:
+        group_data = SOURCE.group_data(GroupId(faculty, year, group))
         week = week_from_txt(week_txt)
         week_txt_ru = localized_week(week_txt)
-    except KeyError:
+    except (KeyError, IndexError):
         raise Http404()
 
     def week_create(week):
@@ -159,6 +159,8 @@ def create_schedule_common(request, faculty, year, group, week_txt, day_txt=None
             'week_url': week_txt,
             'day': day_txt,
             'week_ru': week_txt_ru,
+            'current_week_url': current_week().name,
+            'current_week_ru': localized_week(current_week().name),
             'stats': stats}
 
 def schedule_common(request, faculty, year, group, week_txt, day_txt=None):

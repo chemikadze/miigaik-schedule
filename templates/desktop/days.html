@@ -1,10 +1,10 @@
 {% extends "desktop/base.html" %}
 
 {% block topbar %}
-    <li {% if week_url == "current" and not today %}class="active"{% endif %}><a href="{% url django_schedule.views.schedule_common faculty year group 'current' %}">Текущая</a></li>
     <li {% if week_url == "lower" and not today %}class="active"{% endif %}><a href="{% url django_schedule.views.schedule_common faculty year group 'lower' %}">Нижняя</a></li>
     <li {% if week_url == "upper" and not today %}class="active"{% endif %}><a href="{% url django_schedule.views.schedule_common faculty year group 'upper' %}">Верхняя</a></li>
     <li {% if week_url == "both" and not today %}class="active"{% endif %}><a href="{% url django_schedule.views.schedule_common faculty year group 'both' %}">Все вместе</a></li>
+    <li {% if week_url == "current" and not today %}class="active"{% endif %}><a href="{% url django_schedule.views.schedule_common faculty year group 'current' %}">Текущая ({{ current_week_ru }})</a></li>
     <li {% if today %}class="active"{% endif %}><a href="{% url django_schedule.views.today faculty year group %}">Сегодня</a></li>
 {% endblock %}
 
@@ -28,7 +28,7 @@
                         <td>{{ lesson.tutor }}</td>
                         <td>{{ lesson.auditory }}</td>
                         <td>{{ lesson.type_ }}</td>
-                        <td>{{ lesson.subdivision }}</td>
+                        <td>{% if lesson.subdivision.strip %}<nobr>П/г:&nbsp;{{ lesson.subdivision }}</nobr>{% endif %}</td>
                         {% if week_url == 'both' %}
                             {% if lesson.week_type.name == 'upper' %}
                                 <td>верхняя</td>

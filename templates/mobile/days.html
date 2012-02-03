@@ -1,10 +1,10 @@
 {% extends "mobile/base.html" %}
 
 {% block nav %}
-    <li {% if week_url == "current" and not today %}class="active"{% endif %}><a href="{% url django_schedule.views.schedule_common faculty year group 'current' %}">Текущая неделя</a></li>
     <li {% if week_url == "lower" and not today %}class="active"{% endif %}><a href="{% url django_schedule.views.schedule_common faculty year group 'lower' %}">Нижняя неделя</a></li>
     <li {% if week_url == "upper" and not today %}class="active"{% endif %}><a href="{% url django_schedule.views.schedule_common faculty year group 'upper' %}">Верхняя неделя</a></li>
     <li {% if week_url == "both" and not today %}class="active"{% endif %}><a href="{% url django_schedule.views.schedule_common faculty year group 'both' %}">Верхняя и нижняя неделя</a></li>
+    <li {% if week_url == "current" and not today %}class="active"{% endif %}><a href="{% url django_schedule.views.schedule_common faculty year group 'current' %}">Текущая неделя ({{ current_week_ru }})</a></li>
     <li {% if today %}class="active"{% endif %}><a href="{% url django_schedule.views.today faculty year group %}">На сегодня</a></li>
 {% endblock %}
 
@@ -37,8 +37,8 @@
                                     {{ lesson.subject }} ({{ lesson.type_ }})</b>
                                     <br/>
                                     Каб. <b>{{ lesson.auditory }}</b>,
-                                    {{ lesson.tutor }}
-                                    {% if lesson.subdivision %}П/г: {{ lesson.subdivision }}{% endif %}
+                                    {{ lesson.tutor }}{% if lesson.subdivision.strip %},
+                                        <nobr>П/г: {{ lesson.subdivision }}</nobr>{% endif %}
                                 </div>
                             </td>
                         </tr>
