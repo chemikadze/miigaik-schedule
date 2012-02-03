@@ -58,7 +58,7 @@ class SiteSource(DataSource):
         # TODO: caching
         data = self.soup_for_group(group_id)
         table = self.choose_table(data)
-        return self.parse_table(table)
+        return self.parse_table(group_id, table)
 
     def table_is_valid(self, table):
         return len(table.findAll('th')) == self.ROWCOUNT and \
@@ -97,7 +97,7 @@ class SiteSource(DataSource):
         except KeyError:
             wrong_format(MIIGAIK_SCHEDULE_URL, 'can not parse weekday')
 
-    def parse_table(self, table):
+    def parse_table(self, group_id, table):
         utemp = dict( (day, DaySchedule()) for day in xrange(1, 8) )
         ltemp = dict( (day, DaySchedule()) for day in xrange(1, 8) )
         for row in table.findAll('tr'):
