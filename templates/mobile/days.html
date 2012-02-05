@@ -11,6 +11,8 @@
 {% block content %}
     <h4>Расписание для {{ faculty }}, {{ year }} курс, группа {{ group }}.</h4>
 
+    Импортировать как <span class="label"><a href="ical">icalendar</a></span>
+
     <table>
         {% if days %}
             {% for day in days %}

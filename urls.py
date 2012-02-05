@@ -19,19 +19,33 @@ urlpatterns = patterns('',
 
     (r'^schedule/$', 'django_schedule.views.main_handler'),
 
+    # TODO: I forgot some Django urlconf Zen. God will forgive, i won't.
+
     (r'^schedule/([^/]+)/([^/]+)/([^/]+)/$',
         'django_schedule.views.schedule_common', {'week_txt': 'both'}),
+
+    (r'^schedule/([^/]+)/([^/]+)/([^/]+)/ical$',
+     'django_schedule.views.icalendar_common', {'week_txt': 'both'}),
 
 
     (r'^schedule/([^/]+)/([^/]+)/([^/]+)/today/$',
         'django_schedule.views.today'),
 
+    (r'^schedule/([^/]+)/([^/]+)/([^/]+)/today/ical$',
+     'django_schedule.views.icalendar_common'),
+
     # TODO match both|upper|lower
     (r'^schedule/([^/]+)/([^/]+)/([^/]+)/([^/]+)/$',
         'django_schedule.views.schedule_common'),
 
+    (r'^schedule/([^/]+)/([^/]+)/([^/]+)/([^/]+)/ical$',
+     'django_schedule.views.icalendar_common'),
+
     # TODO match both|upper|lower
     (r'^schedule/([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/$',
         'django_schedule.views.schedule_common'),
+
+    (r'^schedule/([^/]+)/([^/]+)/([^/]+)/([^/]+)/([^/]+)/ical$',
+     'django_schedule.views.icalendar_common'),
 
 )

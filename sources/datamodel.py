@@ -72,14 +72,14 @@ class Lesson(object):
 
     def __init__(self, week_day, number, subject, tutor, auditory, week_type,
                  subdivision, type_):
-        self.week_day = week_day
-        self.number = number
-        self.subject = subject
-        self.tutor = tutor
-        self.auditory = auditory
-        self.week_type = week_type
-        self.subdivision = subdivision
-        self.type = type_
+        self.week_day = week_day       # int, from 1
+        self.number = number           # int
+        self.subject = subject         # string
+        self.tutor = tutor             # string
+        self.auditory = auditory       # string
+        self.week_type = week_type     # WeekType
+        self.subdivision = subdivision # string
+        self.type = type_              # string
 
 
 class DataSource(object):
@@ -107,4 +107,15 @@ class GroupData(object):
         """Schedule for upper/lower week
 
         Returns list of tuples (weekday , DaySchedule)"""
+        raise NotImplementedError()
+
+
+class TimeTable(object):
+
+    """Mapping between lessons and hours"""
+
+    def start(self, number):
+        raise NotImplementedError()
+
+    def end(self, number):
         raise NotImplementedError()

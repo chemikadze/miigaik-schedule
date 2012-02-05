@@ -5,13 +5,12 @@ from django.shortcuts import render_to_response
 from django import forms
 from logging import getLogger
 from django.template.defaultfilters import register
-from time import localtime, strftime
 from django.template import RequestContext
 
 logger = getLogger('views')
 
-from sources import CURRENT_SOURCE
-from sources.datamodel import GroupId, UPPER_WEEK, LOWER_WEEK, DaySchedule, MAP_DAY_STR
+from sources import CURRENT_SOURCE, CURRENT_TIMETABLE
+from sources.datamodel import GroupId, MAP_DAY_STR
 from sources.util import *
 
 SOURCE = CURRENT_SOURCE()
@@ -166,3 +165,21 @@ def create_schedule_common(request, faculty, year, group, week_txt, day_txt=None
 def schedule_common(request, faculty, year, group, week_txt, day_txt=None):
     return render_response(request, 'days.html',
         create_schedule_common(request, faculty, year, group, week_txt, day_txt))
+
+
+def icalendar_common(request, faculty, year, group, week_txt, day_txt=None):
+    group_data = SOURCE.group_data(GroupId(faculty, year, group))
+    def pred(lesson):
+        return ((week_txt in ('both', 'current')
+                 or lesson.week_type.name == week_txt)) and \
+               (not day_txt
+                 or str(lesson.week_day) == day_txt)
+    ical = group_data_to_ical(group_data, CURRENT_TIMETABLE(), pred)
+    response =  HttpResponse(ical.as_string(), mimetype='text/calendar; charset=utf-8')
+    filename = u'schedule_%s_%s_%s_%s.ics' % (faculty, year, group, week_txt)
+    def trans(i):
+        if i > 128: return i-128
+        else: return i
+    translated = ''.join([chr(trans(ord(i))) for i in filename.encode('koi8-r')])
+    response['Content-Disposition'] = 'attachment; filename=%s' % translated
+    return response

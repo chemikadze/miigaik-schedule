@@ -9,6 +9,7 @@
 {% endblock %}
 
 {% block content %}
+
     <h4>Расписание для {{ faculty }}, {{ year }} курс, группа {{ group }}.</h4>
 
     <table>
@@ -47,6 +48,7 @@
 {% endblock %}
 
 {% block sidebar %}
+
     <h5>Статистика</h5>
     <table>
         <tr><td>Пар:</td><td>{{ stats.lessons }}</td></tr>
@@ -57,4 +59,9 @@
             <tr><td>Минимум в день:</td><td>{{ stats.min_lessons }}</td></tr>
         {% endif %}
     </table>
+
+
+    <h5>Импорт</h5>
+    <a href="ical">Outlook, GCal, iCal, iPhone</a>
+
 {% endblock %}
