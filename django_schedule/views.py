@@ -173,7 +173,8 @@ def icalendar_common(request, faculty, year, group, week_txt, day_txt=None):
         return ((week_txt in ('both', 'current')
                  or lesson.week_type.name == week_txt)) and \
                (not day_txt
-                 or str(lesson.week_day) == day_txt)
+                 or str(lesson.week_day) == day_txt
+                 or (lesson.week_day == current_weekday() and day_txt == 'today'))
     ical = group_data_to_ical(group_data, CURRENT_TIMETABLE(), pred)
     response =  HttpResponse(ical.as_string(), mimetype='text/calendar; charset=utf-8')
     filename = u'schedule_%s_%s_%s_%s.ics' % (faculty, year, group, week_txt)

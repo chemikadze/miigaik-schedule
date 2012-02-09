@@ -32,7 +32,7 @@ urlpatterns = patterns('',
         'django_schedule.views.today'),
 
     (r'^schedule/([^/]+)/([^/]+)/([^/]+)/today/ical$',
-     'django_schedule.views.icalendar_common'),
+     'django_schedule.views.icalendar_common', {'week_txt': 'current', 'day_txt': 'today'}),
 
     # TODO match both|upper|lower
     (r'^schedule/([^/]+)/([^/]+)/([^/]+)/([^/]+)/$',
