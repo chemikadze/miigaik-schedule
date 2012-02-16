@@ -5,6 +5,8 @@ os.environ["DJANGO_SETTINGS_MODULE"] = "settings"
 
 ROOT_PATH = os.path.dirname(__file__)
 sys.path.append(ROOT_PATH)
+sys.path.insert(0, os.path.join(ROOT_PATH, 'icalendar/src/'))
+
 
 # Google App Engine imports.
 from google.appengine.ext.webapp import util

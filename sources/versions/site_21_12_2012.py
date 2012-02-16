@@ -1,9 +1,12 @@
 # -:- coding: utf-8 -:-
 
+from datetime import time
+
 from sources.datamodel import *
 from sources.site import request_get, request_post, wrong_format, \
     parse_select_item, GroupDataContainer
 from BeautifulSoup import BeautifulSoup
+from sources.util import MOSCOW_TZ
 
 import HTMLParser
 
@@ -139,4 +142,28 @@ class SiteSource(DataSource):
             return False
 
 
+def _tm(hour, minute):
+    return time(hour, minute, tzinfo=MOSCOW_TZ)
+
+
+class HardcodedTimetable(TimeTable):
+
+    data = {
+        1: [_tm(9, 00), _tm(10, 30)],
+        2: [_tm(10, 40), _tm(12, 10)],
+        3: [_tm(12, 50), _tm(14, 20)],
+        4: [_tm(14, 30), _tm(16, 00)],
+        5: [_tm(16, 10), _tm(17, 40)],
+        6: [_tm(17, 50), _tm(19, 20)],
+        7: [_tm(19, 30), _tm(21, 00)]
+    }
+
+    def start(self, number):
+        return self.data[number][0]
+
+    def end(self, number):
+        return self.data[number][1]
+
+
 DATA_SOURCE = SiteSource
+TIMETABLE = HardcodedTimetable
