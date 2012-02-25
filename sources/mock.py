@@ -48,7 +48,8 @@ class MockDataSource(DataSource):
                 ("%s's_pain_%s_for_%s_%s") % (f, d, g, w),
                 "Old %s's tutor" % f,
                 1488+int(y)*10+d,
-                w, 'subXXX', 'practice')
+                w, 'subXXX', 'practice',
+                ClassroomId(int(d), 1488+int(y)*10+d))
             for i in xrange(1, d+1)
         ]
         sched = DaySchedule()

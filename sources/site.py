@@ -2,7 +2,7 @@ import urllib
 import urllib2
 
 from datamodel import GroupData
-from sources.datamodel import UPPER_WEEK
+from sources.datamodel import UPPER_WEEK, ClassroomData
 
 REQUEST_TOUT = 120
 
@@ -55,6 +55,23 @@ class GroupDataContainer(GroupData):
 
     def group_id(self):
         return self.__group_id
+
+    def week(self, week_type):
+        if week_type == UPPER_WEEK:
+            return self.upper
+        else:
+            return self.lower
+
+
+class ClassroomDataContainer(ClassroomData):
+
+    def __init__(self, classroom_id, upper, lower):
+        """Create GroupData with precomputed lists"""
+        self.__classroom_id = classroom_id
+        self.upper, self.lower = upper, lower
+
+    def classroom_id(self):
+        return self.__classroom_id
 
     def week(self, week_type):
         if week_type == UPPER_WEEK:

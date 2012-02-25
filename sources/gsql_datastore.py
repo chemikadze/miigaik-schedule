@@ -1,9 +1,10 @@
 from datetime import datetime
 import json
 from google.appengine.ext import db
-from sources.datamodel import Lesson, LOWER_WEEK, UPPER_WEEK, DaySchedule, GroupData, GroupId
-from sources.site import GroupDataContainer
+from sources.datamodel import Lesson, LOWER_WEEK, UPPER_WEEK, DaySchedule, GroupData, GroupId, ClassroomId, ClassroomData, DataSource
+from sources.site import GroupDataContainer, ClassroomDataContainer
 import logging
+from sources.util import AutoaddDict
 
 
 class NoVersionStoredException(Exception):
@@ -93,49 +94,27 @@ class GsqlFacultyDescriptor(db.Model):
     value = db.StringProperty()
 
 
-class GsqlGroupData(db.Model, GroupData):
+class WeekSerializible(object):
 
-    version = db.IntegerProperty()
-    # contains only "value" from id dictionary
-    faculty = db.StringProperty()
-    year = db.StringProperty() # string for compatibility
-    group = db.StringProperty()
-
-    _upper_week_data = db.TextProperty()
-    _lower_week_data = db.TextProperty()
-
-    def group_id(self):
-        return GroupId(self.faculty, self.year, self.group)
-
-    def week(self, week_type):
-        if week_type == UPPER_WEEK:
-            if not self.__upper_week:
-                self.__upper_week = self._deserialize_week(self._upper_week_data)
-            return self.__upper_week
-        else:
-            if not self.__lower_week:
-                self.__lower_week = self._deserialize_week(self._lower_week_data)
-            return self.__lower_week
-
-    def __init__(self, *args, **kwargs):
-        super(GsqlGroupData, self).__init__(*args, **kwargs)
-        self.__upper_week = None
-        self.__lower_week = None
+    def set_id(self, id_data):
+        raise NotImplementedError()
 
     @classmethod
-    def from_group_data(cls, group_data):
-        upper_week = group_data.week(UPPER_WEEK)
-        lower_week = group_data.week(LOWER_WEEK)
-        if not any((i[1] for i in upper_week)) and \
+    def from_data(cls, data):
+        upper_week = data.week(UPPER_WEEK)
+        lower_week = data.week(LOWER_WEEK)
+        if not any((i[1] for i in upper_week)) and\
            not any((i[1] for i in lower_week)):
             return None
-        obj = GsqlGroupData()
-        obj.faculty = group_data.group_id().faculty
-        obj.year = group_data.group_id().year
-        obj.group = group_data.group_id().group
+        obj = cls()
+        obj.set_id(cls.get_id(data))
         obj._upper_week_data = cls._serialize_week(upper_week)
         obj._lower_week_data = cls._serialize_week(lower_week)
         return obj
+
+    @classmethod
+    def get_id(cls, proto):
+        raise NotImplementedError()
 
     @classmethod
     def _serialize_day(cls, day):
@@ -170,10 +149,74 @@ class GsqlGroupData(db.Model, GroupData):
         repr = json.loads(data)
         return [(wd, cls._deserialize_day(day)) for wd, day in repr]
 
+    def week(self, week_type):
+        if week_type == UPPER_WEEK:
+            if not self.__upper_week:
+                self.__upper_week = self._deserialize_week(self._upper_week_data)
+            return self.__upper_week
+        else:
+            if not self.__lower_week:
+                self.__lower_week = self._deserialize_week(self._lower_week_data)
+            return self.__lower_week
 
 
+class GsqlClassroomData(db.Model, ClassroomData, WeekSerializible):
 
-class GsqlDataSource(object):
+    version = db.IntegerProperty()
+
+    building = db.StringProperty()
+    number = db.StringProperty()
+
+    _upper_week_data = db.TextProperty()
+    _lower_week_data = db.TextProperty()
+
+    def __init__(self, *args, **kwargs):
+        super(GsqlClassroomData, self).__init__(*args, **kwargs)
+        self.__upper_week = None
+        self.__lower_week = None
+
+    def classroom_id(self):
+        return ClassroomId(self.building, self.number)
+
+    def set_id(self, id_data):
+        self.building = str(id_data.building)
+        self.number = str(id_data.number)
+
+    @classmethod
+    def get_id(self, proto):
+        return proto.classroom_id()
+
+
+class GsqlGroupData(db.Model, GroupData, WeekSerializible):
+
+    version = db.IntegerProperty()
+    # contains only "value" from id dictionary
+    faculty = db.StringProperty()
+    year = db.StringProperty() # string for compatibility
+    group = db.StringProperty()
+
+    _upper_week_data = db.TextProperty()
+    _lower_week_data = db.TextProperty()
+
+    def group_id(self):
+        return GroupId(self.faculty, self.year, self.group)
+
+    def __init__(self, *args, **kwargs):
+        super(GsqlGroupData, self).__init__(*args, **kwargs)
+        self.__upper_week = None
+        self.__lower_week = None
+
+    def set_id(self, id_data):
+        self.faculty = id_data.faculty
+        self.year = id_data.year
+        self.group = id_data.group
+
+    @classmethod
+    def get_id(cls, proto):
+        return proto.group_id()
+
+
+class GsqlDataSource(DataSource):
 
     """Base class for some source of schedule data"""
 
@@ -254,14 +297,48 @@ class GsqlDataSource(object):
         save_class(GsqlGroupDescriptor, groups)
         save_class(GsqlFacultyDescriptor, faculties)
         save_class(GsqlYearDescriptor, years)
-        for data in schedules:
-            group_data = GsqlGroupData.from_group_data(data)
-            group_data.version = version
-            if group_data:
-                group_data.put()
+        cls._save_groups(version, schedules)
+        cls._save_classrooms(version, schedules)
         v.valid = True
         v.put()
         return version
+
+    @classmethod
+    def _save_groups(cls, version, schedules):
+        for data in schedules:
+            group_data = GsqlGroupData.from_data(data)
+            group_data.version = version
+            if group_data:
+                group_data.put()
+
+    @classmethod
+    def _save_classrooms(cls, version, schedules):
+        # [ clsrm -> [week_type -> [day -> day_schedule]] ]
+        classrooms = AutoaddDict(
+            lambda _: AutoaddDict(
+                lambda _: AutoaddDict(
+                    lambda _: DaySchedule())))
+        for data in schedules:
+            def process_week(wtype):
+                week_data = data.week(wtype)
+                for (day_id, day) in week_data:
+                    for lesson in day.list():
+                        clsdata = \
+                            classrooms[lesson.classroom_id][wtype][day_id]
+                        clsdata.set_lesson(lesson.number, lesson)
+            process_week(UPPER_WEEK)
+            process_week(LOWER_WEEK)
+        def conv(lst):
+            p = lst.items()
+            p.sort(lambda t1, t2: cmp(t1[0], t2[0]))
+            return [ i for i in p if len(i[1])>0 ]
+        for (room_id, wdata) in classrooms.items():
+            data = ClassroomDataContainer(room_id,
+                                          conv(wdata[UPPER_WEEK]),
+                                          conv(wdata[LOWER_WEEK]))
+            classroom_data = GsqlClassroomData.from_data(data)
+            classroom_data.version = version
+            classroom_data.put()
 
     @classmethod
     def config_version(cls):

@@ -123,3 +123,18 @@ def lesson_uuid(lesson):
     data = lesson.__dict__.copy()  # this one can fail if lesson is getter-based
     data['week_type'] = data['week_type'].name
     return u'%(week_type)s-%(week_day)s-%(number)s/%(subject)s-%(tutor)s-%(type)s@miigaik-schedule-ng' % data
+
+
+class AutoaddDict(dict):
+
+    def __init__(self, proto_gen):
+        super(AutoaddDict, self).__init__()
+        self.proto_gen = proto_gen
+
+    def __getitem__(self, id):
+        try:
+            return super(AutoaddDict, self).__getitem__(id)
+        except KeyError:
+            elem = self.proto_gen(id)
+            super(AutoaddDict, self).__setitem__(id, elem)
+            return elem

@@ -83,7 +83,8 @@ class SiteSource(DataSource):
             _un(cols[6].text),
             self.parse_week_type(_un(cols[2].text).strip()),
             _un(cols[3].text),
-            _un(cols[7].text)
+            _un(cols[7].text),
+            self.classroom_id_from_string(_un(cols[6].text))
         )
 
     def parse_week_type(self, text):
@@ -140,6 +141,10 @@ class SiteSource(DataSource):
                    nums.get(group['text'].split(' ')[1].split('-')[0], 0)
         except ValueError:
             return False
+
+    def classroom_id_from_string(self, txt):
+        aud, building = txt.partition(u'к')
+        return ClassroomId(building, aud)
 
 
 def _tm(hour, minute):

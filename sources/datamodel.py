@@ -31,6 +31,25 @@ WEEK_DAYS = (
 MAP_DAY_STR = dict((id, s) for (s, id) in WEEK_DAYS)
 
 
+class ClassroomId(object):
+
+    """Identifier for classroom"""
+
+    def __init__(self, building, number):
+        self.building = building
+        self.number = number
+
+    def __str__(self):
+        return "ClassroomId(%s,%s)" % (self.building, self.number)
+
+    def __hash__(self):
+        return hash(self.building) + hash(self.number)
+
+    def __cmp__(self, other):
+        return cmp(self.building, other.building) or \
+               cmp(self.number, other.number)
+
+
 class GroupId(object):
 
     """Identifier for group"""
@@ -40,6 +59,13 @@ class GroupId(object):
         self.faculty = faculty
         self.year = year
         self.group = group
+
+    def __hash__(self):
+        return hash(self.faculty) + hash(self.year) + hash(self.group)
+
+    def __cmp__(self, other):
+        return cmp(self.faculty, other.faculty) or cmp(self.year, other.year)\
+                or cmp(self.group, other.group)
 
     def __str__(self):
         return "GroupId(%s,%s,%s)" % (self.faculty, self.year, self.group)
@@ -72,15 +98,16 @@ class DaySchedule(object):
 class Lesson(object):
 
     def __init__(self, week_day, number, subject, tutor, auditory, week_type,
-                 subdivision, type_):
+                 subdivision, type_, classroom_id):
         self.week_day = week_day       # int, from 1
         self.number = number           # int
         self.subject = subject         # string
         self.tutor = tutor             # string
         self.auditory = auditory       # string
+        self.classroom_id = classroom_id # string
         self.week_type = week_type     # WeekType
         self.subdivision = subdivision # string
-        self.type = type_              # string
+        self.type_ = type_             # string
 
 
 class DataSource(object):
@@ -88,6 +115,9 @@ class DataSource(object):
     """Base class for some source of schedule data"""
 
     def group_data(self, group_id):
+        raise NotImplementedError()
+
+    def classroom_data(self, classroom_id):
         raise NotImplementedError()
 
     def faculties(self):
@@ -99,6 +129,9 @@ class DataSource(object):
     def groups(self):
         raise NotImplementedError()
 
+    def classrooms(self):
+        raise NotImplementedError()
+
     def valid_comp(self, year, group):
         raise NotImplementedError()
 
@@ -108,6 +141,20 @@ class GroupData(object):
     """Data for group (faculty+year+spec)"""
 
     def group_id(self):
+        raise NotImplementedError()
+
+    def week(self, week_type):
+        """Schedule for upper/lower week
+
+        Returns list of tuples (weekday , DaySchedule)"""
+        raise NotImplementedError()
+
+
+class ClassroomData(object):
+
+    """Data for classroom"""
+
+    def classroom_id(self):
         raise NotImplementedError()
 
     def week(self, week_type):
