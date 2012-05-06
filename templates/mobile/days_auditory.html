@@ -1,0 +1,75 @@
+{% extends "mobile/base.html" %}
+
+{% block nav %}
+    <!-- TODO FIX THIS HOLY CRAP SOME WAY -->
+    <li {% if week_url == "lower" and not today %}class="active"{% endif %}><a href="{% urle django_schedule.views.generic_schedule_common   building=dataset_id.building number=dataset_id.number week_txt='lower' %}">Нижняя</a></li>
+    <li {% if week_url == "upper" and not today %}class="active"{% endif %}><a href="{% urle django_schedule.views.generic_schedule_common   building=dataset_id.building number=dataset_id.number week_txt='upper' %}">Верхняя</a></li>
+    <li {% if week_url == "both" and not today %}class="active"{% endif %}><a href="{% urle django_schedule.views.generic_schedule_common    building=dataset_id.building number=dataset_id.number week_txt='both' %}">Все вместе</a></li>
+    <li {% if week_url == "current" and not today %}class="active"{% endif %}><a href="{% urle django_schedule.views.generic_schedule_common building=dataset_id.building number=dataset_id.number week_txt='current' %}">Текущая ({{ current_week_ru }})</a></li>
+    <li {% if today %}class="active"{% endif %}><a href="{% urle django_schedule.views.generic_today building=dataset_id.building number=dataset_id.number %}">Сегодня</a></li>
+{% endblock %}
+
+{% block content %}
+    <h4>Расписание для аудитории {{ dataset_id.number }}, корпус {{ dataset_id.building }}. Неделя: {{ week_ru }}</h4>
+
+    Импортировать как <span class="label"><a href="ical">icalendar</a></span>
+
+    <table>
+        {% if days %}
+            {% for day in days %}
+
+                {% if day %}
+
+                    <tr>
+                        <th colspan="{% if week_url == both %}5{% else %}4{% endif %}">
+                            <a href="{% urle django_schedule.views.generic_schedule_common building=dataset_id.building number=dataset_id.number week_txt=week_url day_txt=day|first|get_weekday_id %}">{{ day|first|get_weekday }}</a>
+                        </th>
+                    </tr>
+                    {% for lesson in day %}
+                        <tr>
+                            <td>
+                                <div class="short-lesson">
+                                    <b>#{{ lesson.number }}
+                                        {% if week_url == 'both' %}
+                                            {% if lesson.week_type.name == 'upper' %}
+                                                <b>(верх.)</b>
+                                            {% else %}
+                                                <b>(ниж.)</b>
+                                            {% endif %}
+                                        {% endif %}
+                                        {{ lesson.subject }} ({{ lesson.type_ }})</b>
+                                    <br/>
+                                    <b><a href="{% urle django_schedule.views.generic_schedule_common faculty=lesson.group_id.faculty year=lesson.group_id.year group=lesson.group_id.group week_txt=week_url %}">
+                                        <nobr>{{ lesson.group_id.group }}</nobr>
+                                    </a></b>
+                                    <br/>
+                                    Каб. <nobr>{{ lesson.auditory }}</nobr></a></b>,
+                                    {{ lesson.tutor }}{% if lesson.subdivision.strip %},
+                                        <nobr>П/г: {{ lesson.subdivision }}</nobr>{% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+
+                {% endif %}
+            {% endfor %}
+        {% else %}
+            <h4>Нет занятий</h4>
+        {% endif %}
+
+    </table>
+
+{% endblock %}
+
+{% block extra %}
+    <h5>Статистика</h5>
+    <table>
+        <tr><td>Пар:</td><td>{{ stats.lessons }}</td></tr>
+        {% if not day %}
+            <tr><td>Учебных дней:</td><td>{{ stats.days }}</td></tr>
+            <tr><td>В среднем в день: </td><td>{{ stats.avg_lessons }}</td></tr>
+            <tr><td>Максимум в день:</td><td>{{ stats.max_lessons }}</td></tr>
+            <tr><td>Минимум в день:</td><td>{{ stats.min_lessons }}</td></tr>
+        {% endif %}
+    </table>
+{% endblock %}

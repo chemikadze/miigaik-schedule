@@ -1,0 +1,32 @@
+{% extends "desktop/base.html" %}
+
+{% block sidebar %}
+    <form method="GET" action="" class="form-stacked">
+
+        <ul class="form-ul">
+            {{ form.as_ul }}
+            <li><button class="btn" type="submit">Показать</button></li>
+        </ul>
+
+    </form>
+{% endblock %}
+
+
+{% block content %}
+    {% if index %}
+        <h4>Поиск свободной аудитории</h4>
+        <p>Введите параметры поиска</p>
+    {% else %}
+        {% if buildings %}
+            {% for building in buildings %}
+                <h4>Корпус {{ building.name }}</h4>
+                {% for classroom in building.classrooms %}
+                    <a class="classroom-button" href="{% urle django_schedule.views.generic_schedule_common building=building.name number=classroom.number week_txt=request.GET.week %}">
+                        {{ classroom.number.strip }}</a>
+                {% endfor %}
+            {% endfor %}
+        {% else %}
+            <h4>Нет свободных аудиторий на этот период</h4>
+        {% endif %}
+    {% endif %}
+{% endblock %}

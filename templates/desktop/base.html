@@ -69,6 +69,18 @@
             margin: 0 0 5px 0px
         }
 
+        a.classroom-button {
+            font-size: 20px;
+            padding-left: 5px;
+            padding-right: 5px
+        }
+
+        a:hover.classroom-button {
+            color: #FFFFFF;
+            background-color: #0069D6;
+            text-decoration: none
+        }
+
     </style>
 </head>
 <body>
@@ -78,6 +90,7 @@
         <div class="container">
             <a class="brand" href="/">Расписание МИИГАиК</a>
             <ul class="nav">
+                <li><a href="{% urle django_schedule.views.free_classrooms %}">Свободные аудитории</a></li>
                 {% block topbar %}
                 {% endblock %}
             </ul>

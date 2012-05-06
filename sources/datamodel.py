@@ -41,6 +41,7 @@ class ClassroomId(object):
 
     def __str__(self):
         return "ClassroomId(%s,%s)" % (self.building, self.number)
+    __repr__ = __str__
 
     def __hash__(self):
         return hash(self.building) + hash(self.number)
@@ -97,14 +98,15 @@ class DaySchedule(object):
 
 class Lesson(object):
 
-    def __init__(self, week_day, number, subject, tutor, auditory, week_type,
+    def __init__(self, group_id, week_day, number, subject, tutor, auditory, week_type,
                  subdivision, type_, classroom_id):
+        self.group_id = group_id       # GroupId
         self.week_day = week_day       # int, from 1
         self.number = number           # int
         self.subject = subject         # string
         self.tutor = tutor             # string
         self.auditory = auditory       # string
-        self.classroom_id = classroom_id # string
+        self.classroom_id = classroom_id # ClassroomId
         self.week_type = week_type     # WeekType
         self.subdivision = subdivision # string
         self.type_ = type_             # string
@@ -130,6 +132,15 @@ class DataSource(object):
         raise NotImplementedError()
 
     def classrooms(self):
+        """Returns list of names of ClassroomIds"""
+        raise NotImplementedError()
+
+    def buildings(self):
+        """Returns list of building names"""
+        raise NotImplementedError()
+
+    def free_classrooms(self, week, day, lessons, building):
+        """Returns list of ClassromId's"""
         raise NotImplementedError()
 
     def valid_comp(self, year, group):

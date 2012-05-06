@@ -25,9 +25,9 @@ class MockDataSource(DataSource):
         return [x['value'] for x in list]
 
     def group_data(self, group_id):
-        lower = self.__week_for_params(group_id.faculty, group_id.year,
+        lower = self.__week_for_params(group_id, group_id.faculty, group_id.year,
             group_id.group, LOWER_WEEK)
-        upper = self.__week_for_params(group_id.faculty, group_id.year,
+        upper = self.__week_for_params(group_id, group_id.faculty, group_id.year,
             group_id.group, UPPER_WEEK)
         return GroupDataContainer(group_id, upper, lower)
 
@@ -35,21 +35,21 @@ class MockDataSource(DataSource):
     def valid_comp(self, year, group):
         return True
 
-    def __week_for_params(self, f, y, g, w):
+    def __week_for_params(self, id, f, y, g, w):
         return [
-            (day, self.__day(f, y, g, w, day))
+            (day, self.__day(id, f, y, g, w, day))
             for day in xrange(w == UPPER_WEEK and 1 or 0, 6-int(y)+1, 2)
         ]
 
-    def __day(self, f, y, g, w, d):
+    def __day(self, id, f, y, g, w, d):
         lst = [
             Lesson(
-                d, i,
+                id, d, i,
                 ("%s's_pain_%s_for_%s_%s") % (f, d, g, w),
                 "Old %s's tutor" % f,
-                1488+int(y)*10+d,
+                "%sk%s" % (str(1488+int(y)*10+d), d),
                 w, 'subXXX', 'practice',
-                ClassroomId(int(d), 1488+int(y)*10+d))
+                ClassroomId(str(d), str(1488+int(y)*10+d)))
             for i in xrange(1, d+1)
         ]
         sched = DaySchedule()

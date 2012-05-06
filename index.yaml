@@ -10,30 +10,16 @@ indexes:
 # automatically uploaded to the admin console when you next deploy
 # your application using appcfg.py.
 
-- kind: GsqlVersion
+- kind: GsqlClassroomData
   properties:
-  - name: valid
   - name: version
-    direction: desc
+  - name: building
+  - name: number
 
 - kind: GsqlFacultyDescriptor
   properties:
   - name: version
   - name: text
-    direction: asc
-
-
-- kind: GsqlGroupDescriptor
-  properties:
-  - name: version
-  - name: text
-    direction: asc
-
-- kind: GsqlYearDescriptor
-  properties:
-  - name: version
-  - name: text
-    direction: asc
 
 - kind: GsqlGroupData
   properties:
@@ -41,3 +27,19 @@ indexes:
   - name: group
   - name: year
   - name: faculty
+
+- kind: GsqlGroupDescriptor
+  properties:
+  - name: version
+  - name: text
+
+- kind: GsqlVersion
+  properties:
+  - name: valid
+  - name: version
+    direction: desc
+
+- kind: GsqlYearDescriptor
+  properties:
+  - name: version
+  - name: text

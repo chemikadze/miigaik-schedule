@@ -1,0 +1,76 @@
+{% extends "desktop/days_common.html" %}
+
+{% block topbar %}
+    <!-- TODO FIX THIS HOLY CRAP SOME WAY -->
+    <li {% if week_url == "lower" and not today %}class="active"{% endif %}><a href="{% urle django_schedule.views.generic_schedule_common   building=dataset_id.building number=dataset_id.number week_txt='lower' %}">Нижняя</a></li>
+    <li {% if week_url == "upper" and not today %}class="active"{% endif %}><a href="{% urle django_schedule.views.generic_schedule_common   building=dataset_id.building number=dataset_id.number week_txt='upper' %}">Верхняя</a></li>
+    <li {% if week_url == "both" and not today %}class="active"{% endif %}><a href="{% urle django_schedule.views.generic_schedule_common    building=dataset_id.building number=dataset_id.number week_txt='both' %}">Все вместе</a></li>
+    <li {% if week_url == "current" and not today %}class="active"{% endif %}><a href="{% urle django_schedule.views.generic_schedule_common building=dataset_id.building number=dataset_id.number week_txt='current' %}">Текущая ({{ current_week_ru }})</a></li>
+    <li {% if today %}class="active"{% endif %}><a href="{% urle django_schedule.views.generic_today building=dataset_id.building number=dataset_id.number %}">Сегодня</a></li>
+{% endblock %}
+
+{% block sidebar %}
+
+    <h5>Статистика</h5>
+    <table>
+        <tr><td>Пар:</td><td>{{ stats.lessons }}</td></tr>
+        {% if not day %}
+            <tr><td>Учебных дней:</td><td>{{ stats.days }}</td></tr>
+            <tr><td>В среднем в день: </td><td>{{ stats.avg_lessons }}</td></tr>
+            <tr><td>Максимум в день:</td><td>{{ stats.max_lessons }}</td></tr>
+            <tr><td>Минимум в день:</td><td>{{ stats.min_lessons }}</td></tr>
+        {% endif %}
+    </table>
+
+
+
+
+
+{% endblock %}
+
+
+{% block content %}
+
+    {% block content_title %}
+        <h4>Расписание для аудитории {{ dataset_id.number }}, корпус {{ dataset_id.building }}. Неделя: {{ week_ru }}</h4>
+    {% endblock %}
+
+    <table>
+        {% for day in days %}
+
+            {% if day %}
+
+                <tr>
+                    <th colspan="{% if week_url == 'both' %}7{% else %}6{% endif %}">
+                        <a href="{% urle django_schedule.views.generic_schedule_common building=dataset_id.building number=dataset_id.number week_txt=week_url day_txt=day|first|get_weekday_id %}">{{ day|first|get_weekday }}</a>
+                    </th>
+                </tr>
+                {% for lesson in day %}
+                    <tr>
+                        <td>{{ lesson.number }}</td>
+                        <td>
+                        <a href="{% urle django_schedule.views.generic_schedule_common faculty=lesson.group_id.faculty year=lesson.group_id.year group=lesson.group_id.group week_txt=week_url %}">
+                            <nobr>{{ lesson.group_id.group }}</nobr>
+                        </a>
+
+                        </td>
+                        <td>{{ lesson.subject }}</td>
+                        <td>{{ lesson.tutor }}</td>
+                        <td><a href="{% urle django_schedule.views.generic_schedule_common building=lesson.classroom_id.building number=lesson.classroom_id.number week_txt="both" %}"><nobr>{{ lesson.auditory }}</nobr></a></td>
+                        <td>{{ lesson.type_ }}</td>
+                        <td>{% if lesson.subdivision.strip %}<nobr>П/г:&nbsp;{{ lesson.subdivision }}</nobr>{% endif %}</td>
+                        {% if week_url == 'both' %}
+                            {% if lesson.week_type == 'upper' %}
+                                <td>верхняя</td>
+                            {% else %}
+                                <td>нижняя</td>
+                            {% endif %}
+                        {% endif %}
+                    </tr>
+                {% endfor %}
+
+            {% endif %}
+
+        {% endfor %}
+    </table>
+{% endblock %}

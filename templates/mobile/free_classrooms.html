@@ -1,0 +1,37 @@
+{% extends "mobile/base.html" %}
+
+
+
+{% block content %}
+    <form method="GET" action="" class="form-stacked">
+
+        <ul class="form-ul">
+            {{ form.as_ul }}
+            <li><button class="btn" type="submit">Показать</button></li>
+        </ul>
+
+    </form>
+{% endblock %}
+
+{% block extra %}
+    {% if index %}
+        <h5>Поиск свободной аудитории</h5>
+        <p>Введите параметры поиска</p>
+    {% else %}
+        {% if buildings %}
+            {% for building in buildings %}
+                <h5>Корпус {{ building.name }}</h5>
+                <ul class="navigation-menu">
+                    {% for classroom in building.classrooms %}
+                        <li>
+                        <a class="classroom-button" href="{% urle django_schedule.views.generic_schedule_common building=building.name number=classroom.number week_txt=request.GET.week %}">
+                            {{ classroom.number.strip }}</a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% endfor %}
+        {% else %}
+            <h4>Нет свободных аудиторий на этот период</h4>
+        {% endif %}
+    {% endif %}
+{% endblock %}

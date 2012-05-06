@@ -67,11 +67,11 @@ class ClassroomDataContainer(ClassroomData):
 
     def __init__(self, classroom_id, upper, lower):
         """Create GroupData with precomputed lists"""
-        self.__classroom_id = classroom_id
+        self._classroom_id = classroom_id
         self.upper, self.lower = upper, lower
 
     def classroom_id(self):
-        return self.__classroom_id
+        return self._classroom_id
 
     def week(self, week_type):
         if week_type == UPPER_WEEK:

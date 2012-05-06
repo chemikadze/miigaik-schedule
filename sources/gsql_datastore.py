@@ -4,7 +4,7 @@ from google.appengine.ext import db
 from sources.datamodel import Lesson, LOWER_WEEK, UPPER_WEEK, DaySchedule, GroupData, GroupId, ClassroomId, ClassroomData, DataSource
 from sources.site import GroupDataContainer, ClassroomDataContainer
 import logging
-from sources.util import AutoaddDict
+from sources.util import AutoaddDict, force_str
 
 
 class NoVersionStoredException(Exception):
@@ -94,7 +94,44 @@ class GsqlFacultyDescriptor(db.Model):
     value = db.StringProperty()
 
 
+class GsqlClassroomDescriptor(db.Model, ClassroomId):
+
+    version = db.IntegerProperty()
+
+    building = db.StringProperty()
+    number = db.StringProperty()
+
+
+class GsqlFreeClassroomsView(db.Model):
+
+    version = db.IntegerProperty()
+
+    building = db.StringProperty()
+    week = db.StringProperty()
+    day = db.IntegerProperty()
+
+    # data[lesson] == [ ('34', 'k2') ]
+    _serialized_data = db.TextProperty()
+
+    @classmethod
+    def from_data(cls, data, *args, **kwargs):
+        return GsqlFreeClassroomsView(_serialized_data=json.dumps(data),
+            *args, **kwargs)
+
+    def data(self):
+        if not hasattr(self, '_deserialized_data'):
+            data = json.loads(self._serialized_data)
+            self._deserialized_data = dict(map(lambda x: (int(x[0]), x[1]),
+                                               data.iteritems()))
+        return self._deserialized_data
+
+
+
 class WeekSerializible(object):
+
+    def __init__(self, *args, **kwargs):
+        self.__upper_week = None
+        self.__lower_week = None
 
     def set_id(self, id_data):
         raise NotImplementedError()
@@ -120,6 +157,8 @@ class WeekSerializible(object):
     def _serialize_day(cls, day):
         def conv_lesson(lesson):
             return {
+                'group_id': [getattr(lesson.group_id, a)
+                                for a in ('faculty', 'year', 'group')],
                 'week_day': lesson.week_day,
                 'number': lesson.number,
                 'subject': lesson.subject,
@@ -127,7 +166,9 @@ class WeekSerializible(object):
                 'auditory': lesson.auditory,
                 'week_type': lesson.week_type.name,
                 'subdivision': lesson.subdivision,
-                'type_': lesson.type_
+                'type_': lesson.type_,
+                'classroom_id': (lesson.classroom_id.building,
+                                 lesson.classroom_id.number)
             }
         return [conv_lesson(lesson) for lesson in day.lessons() if lesson]
 
@@ -140,6 +181,10 @@ class WeekSerializible(object):
     def _deserialize_day(cls, day):
         day_schedule = DaySchedule()
         for lesson_repr in day:
+            lesson_repr["classroom_id"] = \
+                ClassroomId(*lesson_repr["classroom_id"])
+            lesson_repr["group_id"] = \
+                GroupId(*lesson_repr["group_id"])
             lesson = Lesson(**lesson_repr)
             day_schedule.set_lesson(lesson.number, lesson)
         return day_schedule
@@ -160,7 +205,7 @@ class WeekSerializible(object):
             return self.__lower_week
 
 
-class GsqlClassroomData(db.Model, ClassroomData, WeekSerializible):
+class GsqlClassroomData(db.Model, WeekSerializible, ClassroomData):
 
     version = db.IntegerProperty()
 
@@ -172,22 +217,21 @@ class GsqlClassroomData(db.Model, ClassroomData, WeekSerializible):
 
     def __init__(self, *args, **kwargs):
         super(GsqlClassroomData, self).__init__(*args, **kwargs)
-        self.__upper_week = None
-        self.__lower_week = None
+        WeekSerializible.__init__(self)
 
     def classroom_id(self):
         return ClassroomId(self.building, self.number)
 
     def set_id(self, id_data):
-        self.building = str(id_data.building)
-        self.number = str(id_data.number)
+        self.building = id_data.building
+        self.number = id_data.number
 
     @classmethod
-    def get_id(self, proto):
+    def get_id(cls, proto):
         return proto.classroom_id()
 
 
-class GsqlGroupData(db.Model, GroupData, WeekSerializible):
+class GsqlGroupData(db.Model, WeekSerializible, GroupData):
 
     version = db.IntegerProperty()
     # contains only "value" from id dictionary
@@ -203,8 +247,7 @@ class GsqlGroupData(db.Model, GroupData, WeekSerializible):
 
     def __init__(self, *args, **kwargs):
         super(GsqlGroupData, self).__init__(*args, **kwargs)
-        self.__upper_week = None
-        self.__lower_week = None
+        WeekSerializible.__init__(self)
 
     def set_id(self, id_data):
         self.faculty = id_data.faculty
@@ -240,11 +283,52 @@ class GsqlDataSource(DataSource):
                                    .filter('group =', group_id.group)\
                                    .filter('year =', group_id.year)\
                                    .filter('faculty =', group_id.faculty)\
-                                   .fetch(1)
+                                   .run(limit=1)
         for data in table:
             return data
         else:
             raise IndexError()
+
+    def classrooms(self):
+        self.update_version()
+        table = GsqlClassroomDescriptor.all().filter('version =', self.version)\
+                                             .run()
+        return ['' for i in table]
+
+    def buildings(self):
+        self.update_version()
+        table = GsqlClassroomDescriptor.all().filter('version =', self.version)\
+                                             .run()
+        return list(set(i.building for i in table))
+
+    def classroom_data(self, classroom_id):
+        self.update_version()
+        table = GsqlClassroomData.all().filter('version =', self.version)\
+                    .filter('building =', force_str(classroom_id.building))\
+                    .filter('number =', force_str(classroom_id.number))\
+                    .run(limit=1)
+        for data in table:
+            return data
+        else:
+            raise IndexError
+
+    def free_classrooms(self, week=None, day=None, lessons=None, building=None):
+        self.update_version()
+        query = GsqlFreeClassroomsView.all()
+        for k in ('week', 'day', 'building'):
+            if locals()[k]:
+                query = query.filter(k + ' =', locals()[k])
+        data = list(query.filter('version =', self.version).run())
+        result = list()
+        for d in data:
+            for (lesson, classrooms) in d.data().iteritems():
+                if (not lessons) or (lesson in map(int, lessons)):
+                    result.append(set(map(tuple, classrooms)))
+        if result:
+            return map(lambda x: ClassroomId(x[1], x[0]),
+                       reduce(lambda s1, s2: s1 & s2, result))
+        else:
+            return list()
 
     def faculties(self):
         self.update_version()
@@ -282,6 +366,7 @@ class GsqlDataSource(DataSource):
 
     @classmethod
     def save_new_version(cls, groups, faculties, years, schedules):
+        logging.debug("Registering new version")
         try:
             version = cls.latest_version(valid=False) + 1
         except NoVersionStoredException:
@@ -294,13 +379,18 @@ class GsqlDataSource(DataSource):
                 o = class_(version=version, text=item['text'],
                     value=item['value'])
                 o.put()
+        logging.debug("Saving groups, faculties, years")
         save_class(GsqlGroupDescriptor, groups)
         save_class(GsqlFacultyDescriptor, faculties)
         save_class(GsqlYearDescriptor, years)
+        logging.debug("Saving group schedules")
         cls._save_groups(version, schedules)
+        logging.debug("Saving classroom schedules")
         cls._save_classrooms(version, schedules)
+        logging.debug("Commiting new version")
         v.valid = True
         v.put()
+        logging.debug("Finished saving new version")
         return version
 
     @classmethod
@@ -332,6 +422,7 @@ class GsqlDataSource(DataSource):
             p = lst.items()
             p.sort(lambda t1, t2: cmp(t1[0], t2[0]))
             return [ i for i in p if len(i[1])>0 ]
+        records = []
         for (room_id, wdata) in classrooms.items():
             data = ClassroomDataContainer(room_id,
                                           conv(wdata[UPPER_WEEK]),
@@ -339,6 +430,47 @@ class GsqlDataSource(DataSource):
             classroom_data = GsqlClassroomData.from_data(data)
             classroom_data.version = version
             classroom_data.put()
+            records.append(classroom_data)
+            crm = GsqlClassroomDescriptor(version=version,
+                building=room_id.building, number=room_id.number)
+            crm.put()
+        cls._save_free_classrooms(version, records)
+
+    @classmethod
+    def _save_free_classrooms(cls, version, classrooms):
+        # key is [week][building][day][number]
+        free_schedule = AutoaddDict(
+            lambda _: AutoaddDict(
+                lambda _: AutoaddDict(
+                    lambda _: AutoaddDict(
+                        lambda _: list()
+                    )
+                )
+            )
+        )
+        def process_week(classroom, week):
+            data = classroom.week(week)
+            for (dayid, day) in data:
+                for (number, lesson) in zip(xrange(len(day.lessons())),
+                                            day.lessons()):
+                    if lesson is None:
+                        week_type = week.name
+                        building = classroom.classroom_id().building
+                        classroom_num = classroom.classroom_id().number
+                        repr = (unicode(classroom_num), unicode(building))
+                        free_schedule[week_type][building][dayid][number] \
+                            .append(repr)
+        for classroom in classrooms:
+            process_week(classroom, UPPER_WEEK)
+            process_week(classroom, LOWER_WEEK)
+        for (wt, wt_data) in free_schedule.iteritems():
+            for (b, b_data) in wt_data.iteritems():
+                for (day, day_data) in b_data.iteritems():
+                    record = GsqlFreeClassroomsView.from_data(day_data,
+                                                    building=b,
+                                                    week=wt, day=day,
+                                                    version=version)
+                    record.put()
 
     @classmethod
     def config_version(cls):

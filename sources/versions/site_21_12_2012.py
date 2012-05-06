@@ -1,12 +1,13 @@
 # -:- coding: utf-8 -:-
 
 from datetime import time
+import logging
 
 from sources.datamodel import *
 from sources.site import request_get, request_post, wrong_format, \
     parse_select_item, GroupDataContainer
 from BeautifulSoup import BeautifulSoup
-from sources.util import MOSCOW_TZ
+from sources.util import MOSCOW_TZ, with_retry
 
 import HTMLParser
 
@@ -31,7 +32,7 @@ class SiteSource(DataSource):
     }
 
     def __init__(self):
-        front_page_data = request_get(MIIGAIK_SCHEDULE_URL)
+        front_page_data = self.request_get(MIIGAIK_SCHEDULE_URL)
         dom = BeautifulSoup(front_page_data)
         forms = dom.findAll('form')
         if len(forms) > 1:
@@ -73,9 +74,10 @@ class SiteSource(DataSource):
                 return table
         raise wrong_format(MIIGAIK_SCHEDULE_URL, 'can not find valid table')
 
-    def row_to_lesson(self, cols):
+    def row_to_lesson(self, group_id, cols):
         # TODO: remove HTML tags
         return Lesson(
+            group_id,
             self.parse_week_day(_un(cols[0].text).strip()),
             int(_un(cols[1].text).split('-')[0]),
             _un(cols[4].text),
@@ -86,6 +88,14 @@ class SiteSource(DataSource):
             _un(cols[7].text),
             self.classroom_id_from_string(_un(cols[6].text))
         )
+
+    @with_retry
+    def request_get(self, *args, **kwargs):
+        return request_get(*args, **kwargs)
+
+    @with_retry
+    def request_post(self, *args, **kwargs):
+        return request_post(*args, **kwargs)
 
     def parse_week_type(self, text):
         try:
@@ -106,11 +116,13 @@ class SiteSource(DataSource):
         ltemp = dict( (day, DaySchedule()) for day in xrange(1, 8) )
         for row in table.findAll('tr'):
             cells = row.findAll('td')
-            if len(cells) == self.ROWCOUNT:
+            if len(cells) == self.ROWCOUNT and\
+                        any(_un(t.text).strip() for t in cells):
                 try:
-                    lesson = self.row_to_lesson(cells)
-                except ValueError:
-                    continue
+                    lesson = self.row_to_lesson(group_id, cells)
+                except ValueError as e:
+                    wrong_format(MIIGAIK_SCHEDULE_URL,
+                        'can not parse lesson because of %s' % e)
                 if lesson.week_type == UPPER_WEEK:
                     utemp[lesson.week_day].set_lesson(lesson.number, lesson)
                 else:
@@ -130,7 +142,7 @@ class SiteSource(DataSource):
         }
 
     def soup_for_group(self, group_id):
-        return BeautifulSoup(request_post(MIIGAIK_SCHEDULE_URL,
+        return BeautifulSoup(self.request_post(MIIGAIK_SCHEDULE_URL,
             parameters=self.post_params_for_group(group_id)))
 
     @classmethod
@@ -142,9 +154,17 @@ class SiteSource(DataSource):
         except ValueError:
             return False
 
-    def classroom_id_from_string(self, txt):
-        aud, building = txt.partition(u'к')
-        return ClassroomId(building, aud)
+    @staticmethod
+    def classroom_id_from_string(txt):
+        if u'воен.' in txt:
+            return ClassroomId('1', txt.strip())
+        aud, _, building = txt.rpartition(u'к', )
+        if aud == '':
+            aud = building
+            building = ''
+        if not building:
+            building = '1'
+        return ClassroomId(building.strip(), aud.strip())
 
 
 def _tm(hour, minute):

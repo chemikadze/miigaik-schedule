@@ -138,3 +138,29 @@ class AutoaddDict(dict):
             elem = self.proto_gen(id)
             super(AutoaddDict, self).__setitem__(id, elem)
             return elem
+
+def empty_data(data):
+    return not any(any(dv[1].list() for dv in data.week(w))
+             for w in (UPPER_WEEK,LOWER_WEEK))
+
+
+def force_str(v):
+    if isinstance(v, basestring):
+        return v
+    else:
+        return str(v)
+
+
+def with_retry(f):
+    def wrapper(*args, **kwargs):
+        retry = kwargs.pop('retry', 3)
+        for i in xrange(1, retry+1):
+            if i == retry:
+                try:
+                    return f(*args, **kwargs)
+                except Exception as e:
+                    pass
+            else:
+                return f(*args, **kwargs)
+    return wrapper
+
