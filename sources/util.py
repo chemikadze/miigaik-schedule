@@ -2,7 +2,9 @@
 
 import calendar
 from datetime import timedelta, tzinfo, datetime
+from time import sleep
 from datamodel import UPPER_WEEK, LOWER_WEEK
+import logging
 from sources.datamodel import DaySchedule
 
 import os, sys
@@ -153,12 +155,14 @@ def force_str(v):
 
 def with_retry(f):
     def wrapper(*args, **kwargs):
-        retry = kwargs.pop('retry', 3)
+        retry = kwargs.pop('retry', 5)
         for i in xrange(1, retry+1):
-            if i == retry:
+            if i != retry:
                 try:
                     return f(*args, **kwargs)
                 except Exception as e:
+                    logging.warning("Exception catched in retry block: %s", e)
+                    sleep(10 * (i+1))
                     pass
             else:
                 return f(*args, **kwargs)
