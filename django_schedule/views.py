@@ -6,6 +6,7 @@ from django import forms
 from logging import getLogger
 from django.template.defaultfilters import register
 from django.template import RequestContext, defaulttags, TemplateSyntaxError
+import re
 
 logger = getLogger('views')
 
@@ -264,9 +265,11 @@ def free_classrooms(request):
     buildings = AutoaddDict(lambda _: list())
     for classroom in SOURCE.free_classrooms(**timestamp):
         buildings[classroom.building].append(classroom)
+    buildings = sorted(buildings.iteritems(), cmp=lambda a, b: cmp(a[0], b[0]))
+    fbuildings = map(lambda x: {'name': x[0],
+                                'classrooms': sorted(x[1], cmp=cid_cmp)},
+                     buildings)
     data = {'form': FindFreeClassroomsForm(initial=request.GET),
-            'buildings':  map(lambda x: {'name': x[0],
-                                         'classrooms': sorted(x[1])},
-                              buildings.iteritems())}
+            'buildings': fbuildings}
     return render_response(request, 'free_classrooms.html', data)
 

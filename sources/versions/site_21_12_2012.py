@@ -158,6 +158,10 @@ class SiteSource(DataSource):
     def classroom_id_from_string(txt):
         if u'воен.' in txt:
             return ClassroomId('1', txt.strip())
+        elif u'шк.' == txt[:3]:
+            return ClassroomId(u'шк', txt[3:].strip())
+        elif u'шк' == txt[:2]:
+            return ClassroomId(u'шк', txt[2:].strip())
         aud, _, building = txt.rpartition(u'к', )
         if aud == '':
             aud = building

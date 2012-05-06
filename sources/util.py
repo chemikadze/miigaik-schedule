@@ -2,6 +2,7 @@
 
 import calendar
 from datetime import timedelta, tzinfo, datetime
+import re
 from time import sleep
 from datamodel import UPPER_WEEK, LOWER_WEEK
 import logging
@@ -168,3 +169,16 @@ def with_retry(f):
                 return f(*args, **kwargs)
     return wrapper
 
+
+def human_cmp(a, b):
+    # thnx to Jeff Atwood (codinghorror.com)
+    convert = lambda text: int(text) if text.isdigit() else text
+    alphanum_key = lambda key: [ convert(c) for c in re.split('([0-9]+)', key) ]
+    return cmp(alphanum_key(a), alphanum_key(b))
+
+def cid_cmp(a, b):
+    res = human_cmp(a.building, b.building)
+    if not res:
+        return human_cmp(a.number, b.number)
+    else:
+        return res
