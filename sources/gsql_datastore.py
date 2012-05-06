@@ -326,7 +326,7 @@ class GsqlDataSource(DataSource):
                     result.append(set(map(tuple, classrooms)))
         if result:
             return map(lambda x: ClassroomId(x[1], x[0]),
-                       reduce(lambda s1, s2: s1 & s2, result))
+                       reduce(lambda s1, s2: s1 | s2, result))
         else:
             return list()
 
