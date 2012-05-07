@@ -24,7 +24,7 @@
                 <ul class="navigation-menu">
                     {% for classroom in building.classrooms %}
                         <li>
-                        <a class="classroom-button" href="{% urle django_schedule.views.generic_schedule_common building=building.name number=classroom.number week_txt=request.GET.week %}">
+                        <a class="classroom-button" href="{% urle django_schedule.views.generic_schedule_common building=building.name number=classroom.number week_txt=week_txt %}">
                             {{ classroom.number.strip }}</a>
                         </li>
                     {% endfor %}

@@ -2,6 +2,7 @@
 
 from datetime import time
 import logging
+import re
 
 from sources.datamodel import *
 from sources.site import request_get, request_post, wrong_format, \
@@ -162,13 +163,15 @@ class SiteSource(DataSource):
             return ClassroomId(u'шк', txt[3:].strip())
         elif u'шк' == txt[:2]:
             return ClassroomId(u'шк', txt[2:].strip())
-        aud, _, building = txt.rpartition(u'к', )
-        if aud == '':
-            aud = building
-            building = ''
+        m = re.match(ur"(\d+)(\s*к.?\s*(\d+))?", txt.strip())
+        if m:
+            aud, building = m.group(1), m.group(3)
+        else:
+            aud = txt.strip()
+            building = None
         if not building:
-            building = '1'
-        return ClassroomId(building.strip(), aud.strip())
+            building = u'1'
+        return ClassroomId(building, aud)
 
 
 def _tm(hour, minute):
@@ -186,12 +189,21 @@ class HardcodedTimetable(TimeTable):
         6: [_tm(17, 50), _tm(19, 20)],
         7: [_tm(19, 30), _tm(21, 00)]
     }
+    sdata = sorted(data.items(), cmp=lambda x, y: cmp(x[0], y[0]))
 
     def start(self, number):
         return self.data[number][0]
 
     def end(self, number):
         return self.data[number][1]
+
+    def lesson(self, time):
+        for (i, bounds) in self.sdata:
+            if bounds[0] <= time <= bounds[1]:
+                return i
+            if time < bounds[0]:
+                return i
+        return None
 
 
 DATA_SOURCE = SiteSource

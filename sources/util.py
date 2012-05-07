@@ -6,6 +6,7 @@ import re
 from time import sleep
 from datamodel import UPPER_WEEK, LOWER_WEEK
 import logging
+import sources
 from sources.datamodel import DaySchedule
 
 import os, sys
@@ -72,6 +73,10 @@ def current_weekday():
     now = datetime.now(MOSCOW_TZ)
     weeknum = int(now.strftime('%w'))
     return weeknum
+
+def current_lesson():
+    now = datetime.now(MOSCOW_TZ)
+    return sources.versions.CURRENT_TIMETABLE().lesson(now.timetz())
 
 
 def group_data_to_ical(group_data, timetable, pred=None):

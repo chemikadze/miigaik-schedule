@@ -248,28 +248,28 @@ def icalendar_common(request, faculty, year, group, week_txt, day_txt=None, **ig
 
 
 def free_classrooms(request):
-    try:
-        conv = lambda x: x != '*' and x or None
-        timestamp = dict((k, conv(request.GET[k]))
-                            for k in ('week', 'building'))
-        if 'day' in request.GET:
-            timestamp['day'] = int(request.GET['day'])
-        frm = int(request.GET.get('lesson', 1))
-        len = int(request.GET.get('length', 1))
-        timestamp['lessons'] = [i for i in xrange(frm, frm+len)]
-    except KeyError:
-        data = {'form': FindFreeClassroomsForm(),
-                'buildings': [],
-                'index': True}
-        return render_response(request, 'free_classrooms.html', data)
+    conv = lambda x: x != '*' and x or None
+    curr = current_lesson() or 1
+    frm = int(request.GET.get('lesson', curr))
+    len = int(request.GET.get('length', 1))
+    timestamp = {
+        'week': request.GET.get('week', current_week().name),
+        'building': conv(request.GET.get('building', '*')),
+        'day': int(request.GET.get('day', current_weekday())),
+        'lessons': range(frm, frm+len)
+    }
     buildings = AutoaddDict(lambda _: list())
     for classroom in SOURCE.free_classrooms(**timestamp):
         buildings[classroom.building].append(classroom)
     buildings = sorted(buildings.iteritems(), cmp=lambda a, b: cmp(a[0], b[0]))
     fbuildings = map(lambda x: {'name': x[0],
                                 'classrooms': sorted(x[1], cmp=cid_cmp)},
-                     buildings)
-    data = {'form': FindFreeClassroomsForm(initial=request.GET),
-            'buildings': fbuildings}
+        buildings)
+    inits = dict(request.GET.items())
+    inits.update(timestamp)
+    inits['lesson'] = frm
+    data = {'form': FindFreeClassroomsForm(initial=inits),
+            'buildings': fbuildings,
+            'week_txt': timestamp['week']}
     return render_response(request, 'free_classrooms.html', data)
 

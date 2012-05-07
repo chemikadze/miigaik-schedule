@@ -184,3 +184,6 @@ class TimeTable(object):
 
     def end(self, number):
         raise NotImplementedError()
+
+    def lesson(self, time):
+        raise NotImplementedError()
