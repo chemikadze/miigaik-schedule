@@ -82,7 +82,7 @@ class SiteSource(DataSource):
             self.parse_week_day(_un(cols[0].text).strip()),
             int(_un(cols[1].text).split('-')[0]),
             _un(cols[4].text),
-            _un(cols[5].text),
+            _un(cols[5].getText(u", ")),
             _un(cols[6].text),
             self.parse_week_type(_un(cols[2].text).strip()),
             _un(cols[3].text),
