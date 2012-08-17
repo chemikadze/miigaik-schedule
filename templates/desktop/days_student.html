@@ -46,7 +46,7 @@
                     </th>
                 </tr>
                 {% for lesson in day %}
-                    <tr>
+                    <tr {% if week_url == "both" and lesson.week_type != "upper" %}style="background-color: #F5F5F5"{% endif %}>
                         <td>{{ lesson.number }}</td>
                         <td>{{ lesson.subject }}</td>
                         <td>{{ lesson.tutor }}</td>

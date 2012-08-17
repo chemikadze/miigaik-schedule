@@ -10,7 +10,7 @@
 {% endblock %}
 
 {% block content %}
-    <h4>Расписание для { dataset_id.faculty }}, {{ dataset_id.year }} курс, группа {{ dataset_id.group }}.</h4>
+    <h4>Расписание для {{ dataset_id.faculty }}, {{ dataset_id.year }} курс, группа {{ dataset_id.group }}.</h4>
 
     Импортировать как <span class="label"><a href="ical">icalendar</a></span>
 
@@ -26,12 +26,12 @@
                         </th>
                     </tr>
                     {% for lesson in day %}
-                        <tr>
+                        <tr {% if week_url == "both" and lesson.week_type != "upper" %}style="background-color: #F5F5F5"{% endif %}>
                             <td>
                                 <div class="short-lesson">
                                     <b>#{{ lesson.number }}
                                         {% if week_url == 'both' %}
-                                            {% if lesson.week_type.name == 'upper' %}
+                                            {% if lesson.week_type == 'upper' %}
                                                 <b>(верх.)</b>
                                             {% else %}
                                                 <b>(ниж.)</b>

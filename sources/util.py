@@ -128,9 +128,8 @@ def lesson_as_ical_event(lesson, lesson_date, timetable):
 
 
 def lesson_uuid(lesson):
-    data = lesson.__dict__.copy()  # this one can fail if lesson is getter-based
-    data['week_type'] = data['week_type'].name
-    return u'%(week_type)s-%(week_day)s-%(number)s/%(subject)s-%(tutor)s-%(type)s@miigaik-schedule-ng' % data
+    data = lesson.__dict__
+    return u'%(week_type)s-%(week_day)s-%(number)s/%(subject)s-%(tutor)s-%(type_)s@miigaik-schedule-ng' % data
 
 
 class AutoaddDict(dict):
