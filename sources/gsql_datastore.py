@@ -266,6 +266,8 @@ class GsqlDataSource(DataSource):
     def __init__(self, version=None):
         self.__forced_version = version
         self.version = None
+        self.__cached_version = None
+        self.__cached_classroom_views = dict()
         self.update_version()
 
     def update_version(self):
@@ -276,6 +278,10 @@ class GsqlDataSource(DataSource):
             self.version = self.__forced_version
         if old_version != self.version:
             logging.debug('Using db version %s', self.version)
+        if self.__cached_version != self.version:
+            logging.debug('Flushing classroom view cache')
+            self.__cached_version = self.version
+            self.__cached_classroom_views = dict()
 
     def group_data(self, group_id):
         self.update_version()
@@ -312,13 +318,27 @@ class GsqlDataSource(DataSource):
         else:
             raise IndexError
 
+    def get_classroom_views(self, version, week, day, building):
+        data = self.__cached_classroom_views.get((version, week, day, building))
+        if data is None:
+            logging.debug(
+                "Querying database for classroom view for v=%s week=%s day=%s building=%s" %
+                    (version, week, day, building))
+            query = GsqlFreeClassroomsView.all()
+            for k in ('week', 'day', 'building', 'version'):
+                if locals()[k]:
+                    query = query.filter(k + ' =', locals()[k])
+            data = list(query.run())
+            self.__cached_classroom_views[(version, week, day, building)] = data
+        else:
+            logging.debug(
+                "Using cached classroom view for v=%s week=%s day=%s building=%s" %
+                    (version, week, day, building))
+        return data
+
     def free_classrooms(self, week=None, day=None, lessons=None, building=None):
         self.update_version()
-        query = GsqlFreeClassroomsView.all()
-        for k in ('week', 'day', 'building'):
-            if locals()[k]:
-                query = query.filter(k + ' =', locals()[k])
-        data = list(query.filter('version =', self.version).run())
+        data = self.get_classroom_views(self.version, week, day, building)
         result = list()
         for d in data:
             for (lesson, classrooms) in d.data().iteritems():
