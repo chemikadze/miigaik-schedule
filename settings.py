@@ -88,7 +88,9 @@ TEMPLATE_LOADERS = (
 )
 
 MIDDLEWARE_CLASSES = (
+    'django.middleware.cache.UpdateCacheMiddleware',
     'django.middleware.common.CommonMiddleware',
+    'django.middleware.cache.FetchFromCacheMiddleware'
 #    'django.contrib.sessions.middleware.SessionMiddleware',
 #    'django.middleware.csrf.CsrfViewMiddleware',
 #    'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -139,3 +141,14 @@ LOGGING = {
         },
     }
 }
+
+#CACHES = {
+#    'default': {
+#        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+#        'TIMEOUT': 0,
+#        }
+#}
+#
+#CACHE_BACKEND = 'memcached://?timeout=0'
+CACHE_MIDDLEWARE_SECONDS = 60 * 60 * 3 # cache for 3 hours
+CACHE_BACKEND = 'django_schedule.memcache://?timeout=0'
