@@ -151,12 +151,15 @@ def home(request):
 
 def main_handler(request):
     from django.core.urlresolvers import reverse, NoReverseMatch
-    return HttpResponseRedirect(
-        reverse('django_schedule.views.generic_schedule_common',
-            kwargs=dict(x for x in request.GET.items()
-                    if x[0] in ('faculty', 'year', 'group'))
+    try:
+        return HttpResponseRedirect(
+            reverse('django_schedule.views.generic_schedule_common',
+                kwargs=dict(x for x in request.GET.items()
+                        if x[0] in ('faculty', 'year', 'group'))
+            )
         )
-    )
+    except NoReverseMatch:
+        return HttpResponseRedirect("/")
 
 
 def generic_today(request, method, id_factory, template, **data_id):
