@@ -37,7 +37,17 @@ indexes:
   properties:
   - name: valid
   - name: version
+
+- kind: GsqlVersion
+  properties:
+  - name: valid
+  - name: version
     direction: desc
+
+- kind: GsqlVersion
+  properties:
+  - name: valid
+  - name: version
 
 - kind: GsqlYearDescriptor
   properties:

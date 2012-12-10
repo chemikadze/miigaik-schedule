@@ -9,6 +9,9 @@ handlers:
 - url: /tasks/update_db
   script: save_new_version.py
   login: admin
+- url: /tasks/clean_oldest
+  script: garbage_collector.py
+  login: admin
 - url: .*
   script: main.py
 

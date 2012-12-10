@@ -8,8 +8,8 @@ from sources import mock
 class Terminate(Exception): pass
 
 def main():
-    site_ds = CURRENT_SOURCE()
-    #site_ds = mock.MockDataSource()
+    #site_ds = CURRENT_SOURCE()
+    site_ds = mock.MockDataSource()
     collected = []
     #c = 0
     try:
