@@ -45,6 +45,9 @@ def cleanupDatastore(logger):
 
 
 class MainHandler(webapp.RequestHandler):
+    def get(self):
+        self.post()
+
     def post(self):
         self.log("Starting cleanup...")
         cleanupDatastore(logger = self.log)

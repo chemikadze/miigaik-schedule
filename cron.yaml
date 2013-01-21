@@ -3,3 +3,7 @@ cron:
   url: /tasks/update_db
   schedule: every day 00:00
   target: updater
+- description: daily cleanup job
+  url: /tasks/clean_oldest
+  schedule: every day 04:00
+  target: updater
