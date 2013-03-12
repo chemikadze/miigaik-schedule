@@ -1,10 +1,10 @@
 # -:- coding: utf-8 -:-
 
 from datetime import time
-import logging
 import re
 
-from sources.datamodel import *
+from sources.datamodel import DataSource, UPPER_WEEK, LOWER_WEEK, \
+    Lesson, DaySchedule, ClassroomId, TimeTable
 from sources.site import request_get, request_post, wrong_format, \
     parse_select_item, GroupDataContainer
 from BeautifulSoup import BeautifulSoup
@@ -14,15 +14,18 @@ import HTMLParser
 
 _parser = HTMLParser.HTMLParser()
 
+
 def _un(string):
     return _parser.unescape(string).replace('&nbsp;', ' ')
 
+
 MIIGAIK_SCHEDULE_URL = 'http://studydep.miigaik.ru/semestr/index.php'
+
 
 class SiteSource(DataSource):
 
     ROWCOUNT = 9
-    WEEK_MAP = { u'верхняя': UPPER_WEEK, u'нижняя': LOWER_WEEK }
+    WEEK_MAP = {u'верхняя': UPPER_WEEK, u'нижняя': LOWER_WEEK}
     WEEKDAYS = {
         u"Понедельник": 1,
         u"Вторник": 2,
@@ -39,9 +42,11 @@ class SiteSource(DataSource):
         if len(forms) > 1:
             wrong_format(MIIGAIK_SCHEDULE_URL, 'more than one form')
         form = forms[0]
+
         def pull_out_list(name):
             return [i for i in parse_select_item(form.find('select',
-                                        attrs={u"name": name}))
+                                                 attrs={u"name": name}))
+
                     if i["text"].strip() and i["value"]]
         self._faculties = pull_out_list('fak')
         self._years = pull_out_list('kurs')
@@ -67,7 +72,7 @@ class SiteSource(DataSource):
 
     def table_is_valid(self, table):
         return len(table.findAll('th')) == self.ROWCOUNT and \
-               table.tr and table.tr.th
+            table.tr and table.tr.th
 
     def choose_table(self, data):
         for table in data.findAll('table'):
@@ -113,25 +118,27 @@ class SiteSource(DataSource):
             wrong_format(MIIGAIK_SCHEDULE_URL, 'can not parse weekday')
 
     def parse_table(self, group_id, table):
-        utemp = dict( (day, DaySchedule()) for day in xrange(1, 8) )
-        ltemp = dict( (day, DaySchedule()) for day in xrange(1, 8) )
+        utemp = dict((day, DaySchedule()) for day in xrange(1, 8))
+        ltemp = dict((day, DaySchedule()) for day in xrange(1, 8))
         for row in table.findAll('tr'):
             cells = row.findAll('td')
             if len(cells) == self.ROWCOUNT and\
-                        any(_un(t.text).strip() for t in cells):
+                    any(_un(t.text).strip() for t in cells):
                 try:
                     lesson = self.row_to_lesson(group_id, cells)
                 except ValueError as e:
                     wrong_format(MIIGAIK_SCHEDULE_URL,
-                        'can not parse lesson because of %s' % e)
+                                 'can not parse lesson because of %s' % e)
                 if lesson.week_type == UPPER_WEEK:
                     utemp[lesson.week_day].set_lesson(lesson.number, lesson)
                 else:
                     ltemp[lesson.week_day].set_lesson(lesson.number, lesson)
+
         def conv(lst):
             p = lst.items()
             p.sort(lambda t1, t2: cmp(t1[0], t2[0]))
-            return [ i for i in p if len(i[1])>0 ]
+            return [i for i in p if len(i[1]) > 0]
+
         return GroupDataContainer(group_id, conv(utemp), conv(ltemp))
 
     def post_params_for_group(self, group_id):
@@ -144,14 +151,14 @@ class SiteSource(DataSource):
 
     def soup_for_group(self, group_id):
         return BeautifulSoup(self.request_post(MIIGAIK_SCHEDULE_URL,
-            parameters=self.post_params_for_group(group_id)))
+                             parameters=self.post_params_for_group(group_id)))
 
     @classmethod
     def valid_comp(cls, year, group):
         nums = {'I': 1, 'II': 2, 'III': 3, 'IV': 4, 'V': 5, 'VI': 6}
         try:
             return int(year['text']) == \
-                   nums.get(group['text'].split(' ')[1].split('-')[0], 0)
+                nums.get(group['text'].split(' ')[1].split('-')[0], 0)
         except ValueError:
             return False
 

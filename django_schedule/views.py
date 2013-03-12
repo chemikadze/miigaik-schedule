@@ -1,18 +1,21 @@
 # -:- coding: utf-8 -:-
 
-from django.http import HttpResponse, HttpRequest, HttpResponseRedirect, Http404, HttpResponseNotFound
+from logging import getLogger
+
+from django.http import HttpResponse, Http404, HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django import forms
-from logging import getLogger
 from django.template.defaultfilters import register
-from django.template import RequestContext, defaulttags, TemplateSyntaxError
-import re
+from django.template import RequestContext, TemplateSyntaxError
+from django.views.decorators.vary import vary_on_headers
+
 
 logger = getLogger('views')
 
 from sources import CURRENT_SOURCE, CURRENT_TIMETABLE
-from sources.datamodel import GroupId, MAP_DAY_STR, ClassroomId
-from sources.util import *
+from sources.datamodel import GroupId, MAP_DAY_STR, UPPER_WEEK, LOWER_WEEK
+from sources.util import current_week, current_weekday, locate, merged_weeks, \
+    group_data_to_ical, current_lesson, AutoaddDict, cid_cmp
 
 SOURCE = CURRENT_SOURCE()
 
@@ -22,13 +25,13 @@ WEEK_NAME_MAP_RU = {'upper': u'верхняя', 'lower': u'нижняя',
 
 
 def render_response(request, template, *args, **kwargs):
-    response = render_to_response(get_template(request, template),
-        context_instance=RequestContext(request),
-        *args,
-        **kwargs)
+    response = \
+        render_to_response(get_template(request, template),
+                           context_instance=RequestContext(request),
+                           *args, **kwargs)
     iface = request.GET.get('iface')
     if iface:
-        response.set_cookie('iface', iface, max_age=365*24*60*60)
+        response.set_cookie('iface', iface, max_age=365 * 24 * 60 * 60)
     return response
 
 
@@ -49,6 +52,7 @@ def week_from_txt(week_txt):
         else:
             raise
 
+
 @register.filter
 def get_weekday(day):
     return MAP_DAY_STR[int(day.week_day)]
@@ -58,14 +62,17 @@ def get_weekday(day):
 def get_weekday_id(day):
     return day.week_day
 
+
 @register.filter
 def is_today(day):
     return str(day) == str(current_weekday())
+
 
 @register.filter
 def urlencodeall(url):
     from django.utils.http import urlquote
     return urlquote(url, '')
+
 
 @register.tag
 def urle(parser, token):
@@ -122,9 +129,12 @@ class SelectGroupFrom(forms.Form):
 
     def __init__(self, *args, **kwargs):
         super(forms.Form, self).__init__(*args, **kwargs)
+
         def itemize(x):
             return x['value'], x['text']
-        self.fields['faculty'].choices = [itemize(x) for x in SOURCE.faculties()]
+
+        self.fields['faculty'].choices = \
+            [itemize(x) for x in SOURCE.faculties()]
         self.fields['year'].choices = [itemize(x) for x in SOURCE.years()]
         self.fields['group'].choices = [itemize(x) for x in SOURCE.groups()]
 
@@ -132,36 +142,41 @@ class SelectGroupFrom(forms.Form):
 class FindFreeClassroomsForm(forms.Form):
 
     building = forms.ChoiceField(label="Здание")
-    week = forms.ChoiceField([(v, WEEK_NAME_MAP_RU[v]) for v in ('upper', 'lower')],
-                            label = "Неделя")
-    day = forms.ChoiceField([(i,i) for i in xrange(1, 7)], label = "День")
-    lesson = forms.ChoiceField([(i,i) for i in xrange(1, 10)], label = "Начиная с пары")
-    length = forms.ChoiceField([(i,i) for i in xrange(1, 10)], label = "Продолжительность, пар")
+    week = forms.ChoiceField(
+        [(v, WEEK_NAME_MAP_RU[v])
+         for v in ('upper', 'lower')], label="Неделя")
+    day = forms.ChoiceField(
+        [(i, i) for i in xrange(1, 7)], label="День")
+    lesson = forms.ChoiceField(
+        [(i, i) for i in xrange(1, 10)], label="Начиная с пары")
+    length = forms.ChoiceField(
+        [(i, i) for i in xrange(1, 10)], label="Продолжительность, пар")
 
     def __init__(self, *args, **kwargs):
         super(forms.Form, self).__init__(*args, **kwargs)
         self.fields['building'].choices = [('*', "Любое")] + \
-                [(i,i) for i in SOURCE.buildings()]
+            [(i, i) for i in SOURCE.buildings()]
 
 
+@vary_on_headers('User-Agent', 'Cookie')
 def home(request):
     form = SelectGroupFrom()
     return render_response(request, 'home.html', {'form': form})
 
 
+@vary_on_headers('User-Agent', 'Cookie')
 def main_handler(request):
     from django.core.urlresolvers import reverse, NoReverseMatch
     try:
         return HttpResponseRedirect(
             reverse('django_schedule.views.generic_schedule_common',
-                kwargs=dict(x for x in request.GET.items()
-                        if x[0] in ('faculty', 'year', 'group'))
-            )
-        )
+                    kwargs=dict(x for x in request.GET.items()
+                                if x[0] in ('faculty', 'year', 'group'))))
     except NoReverseMatch:
         return HttpResponseRedirect("/")
 
 
+@vary_on_headers('User-Agent', 'Cookie')
 def generic_today(request, method, id_factory, template, **data_id):
     week_txt = current_week().name
     day_txt = current_weekday()
@@ -171,7 +186,8 @@ def generic_today(request, method, id_factory, template, **data_id):
     return render_response(request, 'days_%s.html' % template, schedule)
 
 
-def create_schedule_common(method, id_method, week_txt, day_txt=None, **id_data):
+def create_schedule_common(method, id_method, week_txt, day_txt=None,
+                           **id_data):
     day = day_txt and int(day_txt) or -1
     try:
         group_id = id_method(**id_data)
@@ -211,7 +227,7 @@ def create_schedule_common(method, id_method, week_txt, day_txt=None, **id_data)
         lessons = map(len, week_data)
     stats = {'days': len(week_data),
              'lessons': sum(lessons),
-             'avg_lessons': sum(lessons)/len(lessons),
+             'avg_lessons': sum(lessons) / len(lessons),
              'min_lessons': min(lessons),
              'max_lessons': max(lessons)}
     data = {'days': week_data,
@@ -223,33 +239,51 @@ def create_schedule_common(method, id_method, week_txt, day_txt=None, **id_data)
             'dataset_id': group_id,
             'stats': stats,
             }
+    logger.info("Data is %s %s" % (data['days'][0][0].week_type,data['days'][0][1].week_type))
     return data
 
 
-def generic_schedule_common(request, method, id_factory, week_txt, template, day_txt=None, **data_id):
-    return render_response(request, 'days_%s.html' % template,
-        create_schedule_common(method, id_factory, week_txt, day_txt, **data_id))
+@vary_on_headers('User-Agent', 'Cookie')
+def generic_schedule_common(request, method, id_factory, week_txt, template,
+                            day_txt=None, **data_id):
+    return render_response(
+        request, 'days_%s.html' % template,
+        create_schedule_common(method, id_factory, week_txt, day_txt,
+                               **data_id))
 
 
-def icalendar_common(request, faculty, year, group, week_txt, day_txt=None, **ignore):
+@vary_on_headers('User-Agent', 'Cookie')
+def icalendar_common(request, faculty, year, group, week_txt, day_txt=None,
+                     **ignore):
     group_data = SOURCE.group_data(GroupId(faculty, year, group))
+
     def pred(lesson):
         return ((week_txt in ('both', 'current')
                  or lesson.week_type == week_txt)) and \
                (not day_txt
-                 or str(lesson.week_day) == day_txt
-                 or (lesson.week_day == current_weekday() and day_txt == 'today'))
+                or str(lesson.week_day) == day_txt
+                or (lesson.week_day == current_weekday()
+                    and day_txt == 'today'))
+
     ical = group_data_to_ical(group_data, CURRENT_TIMETABLE(), pred)
-    response =  HttpResponse(ical.as_string(), mimetype='text/calendar; charset=utf-8')
+    response = HttpResponse(
+        ical.as_string(), mimetype='text/calendar; charset=utf-8')
     filename = u'schedule_%s_%s_%s_%s.ics' % (faculty, year, group, week_txt)
+
     def trans(i):
-        if i > 128: return i-128
-        else: return i
-    translated = ''.join([chr(trans(ord(i))) for i in filename.encode('koi8-r')])
+        if i > 128:
+            return i - 128
+        else:
+            return i
+
+    logger.debug("filename is %s" % filename)
+    translated = ''.join(
+        [chr(trans(ord(i))) for i in filename.encode('koi8-r')])
     response['Content-Disposition'] = 'attachment; filename=%s' % translated
     return response
 
 
+@vary_on_headers('User-Agent', 'Cookie')
 def free_classrooms(request):
     conv = lambda x: x != '*' and x or None
     curr = current_lesson() or 1
@@ -259,7 +293,7 @@ def free_classrooms(request):
         'week': request.GET.get('week', current_week().name),
         'building': conv(request.GET.get('building', '*')),
         'day': int(request.GET.get('day', current_weekday())),
-        'lessons': range(frm, frm+len)
+        'lessons': range(frm, frm + len)
     }
     buildings = AutoaddDict(lambda _: list())
     for classroom in SOURCE.free_classrooms(**timestamp):
@@ -267,7 +301,7 @@ def free_classrooms(request):
     buildings = sorted(buildings.iteritems(), cmp=lambda a, b: cmp(a[0], b[0]))
     fbuildings = map(lambda x: {'name': x[0],
                                 'classrooms': sorted(x[1], cmp=cid_cmp)},
-        buildings)
+                     buildings)
     inits = dict(request.GET.items())
     inits.update(timestamp)
     inits['lesson'] = frm
@@ -275,4 +309,3 @@ def free_classrooms(request):
             'buildings': fbuildings,
             'week_txt': timestamp['week']}
     return render_response(request, 'free_classrooms.html', data)
-

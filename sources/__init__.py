@@ -1,4 +1,4 @@
-import mock
+#import mock
 import versions
 import gsql_datastore
 

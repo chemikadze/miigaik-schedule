@@ -9,15 +9,17 @@ import logging
 import sources
 from sources.datamodel import DaySchedule
 
-import os, sys
+import os
+import sys
 ROOT_PATH = os.path.dirname(os.path.dirname(__file__))
 sys.path.insert(0, os.path.join(ROOT_PATH, 'icalendar/src/'))
-from icalendar import Calendar, Event, vCalAddress, vRecur, vDatetime, vText
+from icalendar import Calendar, Event, vCalAddress, vRecur, vDatetime
+
 
 class FixedOffset(tzinfo):
 
     def __init__(self, offset, name):
-        self.__offset = timedelta(minutes = offset)
+        self.__offset = timedelta(minutes=offset)
         self.__name = name
 
     def utcoffset(self, dt):
@@ -46,9 +48,9 @@ def merged_days(first, second):
 def merged_weeks(upper, lower):
     upper = dict(upper)
     lower = dict(lower)
-    result = [merged_days(upper.get(i, DaySchedule()),
-                lower.get(i, DaySchedule()))
-                for i in xrange(7)]
+    result = \
+        [merged_days(upper.get(i, DaySchedule()), lower.get(i, DaySchedule()))
+         for i in xrange(7)]
     return [x for x in result if x]
 
 
@@ -73,6 +75,7 @@ def current_weekday():
     now = datetime.now(MOSCOW_TZ)
     weeknum = int(now.strftime('%w'))
     return weeknum
+
 
 def current_lesson():
     now = datetime.now(MOSCOW_TZ)
@@ -101,7 +104,8 @@ def group_data_to_ical(group_data, timetable, pred=None):
             for lesson in day.lessons():
                 if lesson and (not pred or pred(lesson)):
                     lesson_date = start_date + oneday * (lesson.week_day - 1)
-                    event = lesson_as_ical_event(lesson, lesson_date, timetable)
+                    event = \
+                        lesson_as_ical_event(lesson, lesson_date, timetable)
                     cal.add_component(event)
     return cal
 
@@ -114,22 +118,27 @@ def lesson_as_ical_event(lesson, lesson_date, timetable):
     addr.params['CN'] = lesson.tutor.encode('utf-8')
     event['organizer'] = addr
     event.add('location', lesson.auditory)
-    event.add('rrule', vRecur({'freq': 'WEEKLY', 'interval':  2}))
+    event.add('rrule', vRecur({'freq': 'WEEKLY', 'interval': 2}))
 
     start_time = timetable.start(lesson.number)
     end_time = timetable.end(lesson.number)
 
-    event['dtstart'] = vDatetime(datetime(lesson_date.year, lesson_date.month,
-        lesson_date.day, start_time.hour, start_time.minute, tzinfo=start_time.tzinfo))
-    event['dtend'] = vDatetime(datetime(lesson_date.year, lesson_date.month,
-        lesson_date.day, end_time.hour, end_time.minute, tzinfo=end_time.tzinfo))
+    event['dtstart'] = vDatetime(
+        datetime(lesson_date.year, lesson_date.month,
+                 lesson_date.day, start_time.hour, start_time.minute,
+                 tzinfo=start_time.tzinfo))
+    event['dtend'] = vDatetime(
+        datetime(lesson_date.year, lesson_date.month,
+                 lesson_date.day, end_time.hour, end_time.minute,
+                 tzinfo=end_time.tzinfo))
 
     return event
 
 
 def lesson_uuid(lesson):
     data = lesson.__dict__
-    return u'%(week_type)s-%(week_day)s-%(number)s/%(subject)s-%(tutor)s-%(type_)s@miigaik-schedule-ng' % data
+    return u'%(week_type)s-%(week_day)s-%(number)s/' + \
+        '%(subject)s-%(tutor)s-%(type_)s@miigaik-schedule-ng' % data
 
 
 class AutoaddDict(dict):
@@ -146,9 +155,10 @@ class AutoaddDict(dict):
             super(AutoaddDict, self).__setitem__(id, elem)
             return elem
 
+
 def empty_data(data):
     return not any(any(dv[1].list() for dv in data.week(w))
-             for w in (UPPER_WEEK,LOWER_WEEK))
+                   for w in (UPPER_WEEK, LOWER_WEEK))
 
 
 def force_str(v):
@@ -161,13 +171,13 @@ def force_str(v):
 def with_retry(f):
     def wrapper(*args, **kwargs):
         retry = kwargs.pop('retry', 5)
-        for i in xrange(1, retry+1):
+        for i in xrange(1, retry + 1):
             if i != retry:
                 try:
                     return f(*args, **kwargs)
                 except Exception as e:
                     logging.warning("Exception catched in retry block: %s", e)
-                    sleep(10 * (i+1))
+                    sleep(10 * (i + 1))
                     pass
             else:
                 return f(*args, **kwargs)
@@ -177,8 +187,9 @@ def with_retry(f):
 def human_cmp(a, b):
     # thnx to Jeff Atwood (codinghorror.com)
     convert = lambda text: int(text) if text.isdigit() else text
-    alphanum_key = lambda key: [ convert(c) for c in re.split('([0-9]+)', key) ]
+    alphanum_key = lambda key: [convert(c) for c in re.split('([0-9]+)', key)]
     return cmp(alphanum_key(a), alphanum_key(b))
+
 
 def cid_cmp(a, b):
     res = human_cmp(a.building, b.building)
@@ -186,3 +197,11 @@ def cid_cmp(a, b):
         return human_cmp(a.number, b.number)
     else:
         return res
+
+
+def uniq(list_):
+    new = []
+    for i in list_:
+        if i not in new:
+            new.append(i)
+    return new
