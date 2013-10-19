@@ -6,7 +6,7 @@ import HTMLParser
 from BeautifulSoup import BeautifulSoup
 
 from sources.versions import site_21_12_2012
-from sources.datamodel import GroupId
+from sources.datamodel import GroupId, Lesson
 from sources.site import wrong_format, parse_select_item
 from sources.util import uniq
 
@@ -44,7 +44,6 @@ class SiteSource(site_21_12_2012.SiteSource):
         for faculty in faculties:
             dom = self.soup_for_group(GroupId(faculty['value'], u'', u''))
             new_years = pull_out_list(find_form(dom), 'kurs')
-            logger.info("Got years: %s" % new_years)
             years.extend(new_years)
             for year in new_years:
                 gdom = self.soup_for_group(
@@ -54,6 +53,21 @@ class SiteSource(site_21_12_2012.SiteSource):
         self._faculties = sorted(faculties)
         self._years = sorted(uniq(years))
         self._groups = sorted(uniq(groups))
+
+    def row_to_lesson(self, group_id, cols):
+        # TODO: remove HTML tags
+        return Lesson(
+            group_id,
+            self.parse_week_day(_un(cols[0].text).strip()),
+            int(_un(cols[1].text).split('-')[0]),
+            _un(cols[4].text),
+            _un(cols[5].getText(u", ")),
+            _un(cols[6].text),
+            self.parse_week_type(_un(cols[2].text).strip()),
+            _un(cols[3].text),
+            _un(cols[7].text),
+            self.classroom_id_from_string(_un(cols[6].text))
+        )
 
 
 DATA_SOURCE = SiteSource
