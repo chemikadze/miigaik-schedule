@@ -255,8 +255,11 @@ def generic_schedule_common(request, method, id_factory, week_txt, template,
 def icalendar_common(request, method, id_factory, week_txt, day_txt=None,
                      **id_data):
     del id_data['template']
-    group_id = id_factory(**id_data)
-    group_data = getattr(SOURCE, method)(group_id)
+    try:
+        group_id = id_factory(**id_data)
+        group_data = getattr(SOURCE, method)(group_id)
+    except (KeyError, IndexError):
+        raise Http404()
 
     def pred(lesson):
         return ((week_txt in ('both', 'current')

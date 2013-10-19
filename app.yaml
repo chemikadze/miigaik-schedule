@@ -1,5 +1,5 @@
 application: miigaik-schedule-ng
-version: 1-2-prod-r5-fix-broken-ical
+version: 1-2-prod-r5-fix-broken-ical-1
 runtime: python27
 api_version: 1
 
