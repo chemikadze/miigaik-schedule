@@ -239,7 +239,6 @@ def create_schedule_common(method, id_method, week_txt, day_txt=None,
             'dataset_id': group_id,
             'stats': stats,
             }
-    logger.info("Data is %s %s" % (data['days'][0][0].week_type,data['days'][0][1].week_type))
     return data
 
 
@@ -253,9 +252,11 @@ def generic_schedule_common(request, method, id_factory, week_txt, template,
 
 
 @vary_on_headers('User-Agent', 'Cookie')
-def icalendar_common(request, faculty, year, group, week_txt, day_txt=None,
-                     **ignore):
-    group_data = SOURCE.group_data(GroupId(faculty, year, group))
+def icalendar_common(request, method, id_factory, week_txt, day_txt=None,
+                     **id_data):
+    del id_data['template']
+    group_id = id_factory(**id_data)
+    group_data = getattr(SOURCE, method)(group_id)
 
     def pred(lesson):
         return ((week_txt in ('both', 'current')
@@ -268,7 +269,7 @@ def icalendar_common(request, faculty, year, group, week_txt, day_txt=None,
     ical = group_data_to_ical(group_data, CURRENT_TIMETABLE(), pred)
     response = HttpResponse(
         ical.as_string(), mimetype='text/calendar; charset=utf-8')
-    filename = u'schedule_%s_%s_%s_%s.ics' % (faculty, year, group, week_txt)
+    filename = u'schedule.ics'
 
     def trans(i):
         if i > 128:
@@ -276,7 +277,6 @@ def icalendar_common(request, faculty, year, group, week_txt, day_txt=None,
         else:
             return i
 
-    logger.debug("filename is %s" % filename)
     translated = ''.join(
         [chr(trans(ord(i))) for i in filename.encode('koi8-r')])
     response['Content-Disposition'] = 'attachment; filename=%s' % translated
