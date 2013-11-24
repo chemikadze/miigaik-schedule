@@ -34,6 +34,17 @@ def json_response(response_data):
         content_type="application/json; charset=utf-8")
 
 
+def index(request):
+    data_version = CURRENT_SOURCE().latest_version_object()
+    return json_response({
+        "last_data_update": data_version.create_time.strftime("%Y-%m-%d %H:%M:%S UTC"), # TODO: bound to GsqlDatastore
+        "mailto": "chemikadze@gmail.com",
+        "source_code": "https://github.com/chemikadze/miigaik-schedule",
+        "target": "http://raspisaniye-vuzov.ru",
+        "spec": "https://docs.google.com/document/d/1BPZkBa5Y_gcGj25Q3eVm7Ftxh0_NG4a1DYhKR-jjfNQ/edit?pli=1#"
+    })
+
+
 def get_faculties(request):
     faculties = CURRENT_SOURCE().faculties()
     response_data = {
