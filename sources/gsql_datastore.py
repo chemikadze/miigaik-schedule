@@ -372,6 +372,14 @@ class GsqlDataSource(DataSource):
                         .filter('version = ', self.version)
                         .order('text')]
 
+    def groups_data(self, faculty_id=None):
+        self.update_version()
+        request = GsqlGroupData.all().filter('version =', self.version)
+        if faculty_id:
+            request = request.filter('faculty =', faculty_id)
+        table = request.run()
+        return table
+
     @classmethod
     def latest_version(cls, valid=True):
         if valid:

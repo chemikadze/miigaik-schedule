@@ -131,6 +131,9 @@ class DataSource(object):
     def groups(self):
         raise NotImplementedError()
 
+    def groups_data(self, faculty_id=None):
+        raise NotImplementedError()
+
     def classrooms(self):
         """Returns list of names of ClassroomIds"""
         raise NotImplementedError()
