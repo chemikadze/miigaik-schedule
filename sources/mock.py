@@ -1,3 +1,5 @@
+# -*- coding: UTF-8 -*-
+
 from datamodel import *
 from site import GroupDataContainer
 
@@ -6,8 +8,8 @@ class MockDataSource(DataSource):
     def __init__(self):
         def itemize(x):
             return {'text': x, 'value': x}
-        self._faculties = [itemize(x) for x in ['FoAC', 'FoAF']]
-        self._years =[itemize(x) for x in map(str, xrange(1, 6))]
+        self._faculties = [itemize(x) for x in [u'АФ', u'ГФ']]
+        self._years =[itemize(x) for x in map(str, xrange(1, 2))]
         self._groups = [itemize('%s_%s' % (fac['value'], yr['value']))
                           for fac in self.faculties()
                             for yr in self.years()]
@@ -45,10 +47,10 @@ class MockDataSource(DataSource):
         lst = [
             Lesson(
                 id, d, i,
-                ("%s's_pain_%s_for_%s_%s") % (f, d, g, w),
-                "Old %s's tutor" % f,
-                "%sk%s" % (str(1488+int(y)*10+d), d),
-                w, 'subXXX', 'practice',
+                (u"%s's_pain_%s_for_%s_%s") % (f, d, g, w.name),
+                u"Старый %s's tutor" % f,
+                u"%sк%s" % (str(1488+int(y)*10+d), d),
+                w, u'subXXX', u'лекция',
                 ClassroomId(str(d), str(1488+int(y)*10+d)))
             for i in xrange(1, d+1)
         ]
