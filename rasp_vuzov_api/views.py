@@ -2,7 +2,7 @@
 
 import json
 
-from django.http import HttpResponse, HttpResponseBadRequest
+from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseNotFound
 from time import strftime
 
 from sources import CURRENT_SOURCE, CURRENT_TIMETABLE
@@ -60,8 +60,14 @@ def get_groups(request, faculty_id):
 
 @with_args('group_id')
 def get_schedule(request, group_id):
-    id = unpack_group_id(group_id)
-    response_data = group_data_to_json(CURRENT_SOURCE().group_data(id))
+    try:
+        id = unpack_group_id(group_id)
+    except:
+        return HttpResponseBadRequest("Group id should have format: faculty|year|groupname")
+    try:
+        response_data = group_data_to_json(CURRENT_SOURCE().group_data(id))
+    except IndexError:
+        return HttpResponseNotFound("Can not find group: " + group_id)
     return json_response(response_data)
 
 
