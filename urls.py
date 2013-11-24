@@ -21,5 +21,7 @@ urlpatterns = patterns('',
      include('django_schedule.generic_urls'),
         {'method': 'classroom_data', 'id_factory': ClassroomId, 'template': 'auditory'}),
 
-    (r'^classrooms/free/', 'django_schedule.views.free_classrooms')
+    (r'^classrooms/free/', 'django_schedule.views.free_classrooms'),
+
+    (r'^api/rasp-vuzov/', include('rasp_vuzov_api.urls'))
 )
