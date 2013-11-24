@@ -381,16 +381,20 @@ class GsqlDataSource(DataSource):
         return table
 
     @classmethod
-    def latest_version(cls, valid=True):
+    def latest_version_object(cls, valid=True):
         if valid:
             versions = GsqlVersion.all().filter('valid =', True)\
-                                        .order('-version').fetch(1)
+            .order('-version').fetch(1)
         else:
             versions = GsqlVersion.all().order('-version').fetch(1)
         for v in versions:
-            return v.version
+            return v
         else:
             raise NoVersionStoredException()
+
+    @classmethod
+    def latest_version(cls, valid=True):
+        return cls.latest_version_object().version
 
     @classmethod
     def save_new_version(cls, groups, faculties, years, schedules):
