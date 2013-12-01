@@ -1,4 +1,5 @@
 # -:- coding: utf-8 -:-
+import json
 
 from logging import getLogger
 
@@ -312,3 +313,17 @@ def free_classrooms(request):
             'buildings': fbuildings,
             'week_txt': timestamp['week']}
     return render_response(request, 'free_classrooms.html', data)
+
+
+def json_response(response_data):
+    return HttpResponse(
+        json.dumps(response_data, ensure_ascii=False, encoding='UTF-8'),
+        content_type="application/json; charset=utf-8")
+
+
+def list_groups(request, faculty, year):
+    data = CURRENT_SOURCE().groups(faculty, year)
+    result = {}
+    for item in data:
+        result[item['value']] = item['text']
+    return json_response({'groups': result})

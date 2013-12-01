@@ -23,5 +23,7 @@ urlpatterns = patterns('',
 
     (r'^classrooms/free/', 'django_schedule.views.free_classrooms'),
 
-    (r'^api/rasp-vuzov/', include('rasp_vuzov_api.urls'))
+    (r'^api/rasp-vuzov/', include('rasp_vuzov_api.urls')),
+
+    (r'^rest/', include('django_schedule.urls'))
 )

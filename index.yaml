@@ -23,6 +23,34 @@ indexes:
 
 - kind: GsqlGroupData
   properties:
+  - name: faculty
+  - name: version
+  - name: year
+  - name: GsqlGroupData.faculty
+  - name: GsqlGroupData.group
+  - name: GsqlGroupData.year
+
+- kind: GsqlGroupData
+  properties:
+  - name: faculty
+  - name: version
+  - name: year
+  - name: GsqlGroupData.group
+
+- kind: GsqlGroupData
+  properties:
+  - name: faculty
+  - name: version
+  - name: year
+  - name: group
+
+- kind: GsqlGroupData
+  properties:
+  - name: version
+  - name: GsqlGroupData.group
+
+- kind: GsqlGroupData
+  properties:
   - name: version
   - name: group
   - name: year
