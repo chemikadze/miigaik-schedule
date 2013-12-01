@@ -128,7 +128,7 @@ class DataSource(object):
     def years(self):
         raise NotImplementedError()
 
-    def groups(self):
+    def groups(self, faculty_id=None, year=None):
         raise NotImplementedError()
 
     def groups_data(self, faculty_id=None):

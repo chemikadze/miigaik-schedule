@@ -20,7 +20,9 @@ class MockDataSource(DataSource):
     def years(self):
         return self._years
 
-    def groups(self):
+    def groups(self, faculty_id=None, year=None):
+        if faculty_id or year:
+            raise Exception("Filtering by year and faculty is not supported.")
         return self._groups
 
     def __externalize(self, list):

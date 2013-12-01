@@ -361,16 +361,30 @@ class GsqlDataSource(DataSource):
     def years(self):
         self.update_version()
         return [ {'text': y.text, 'value': y.value}
-        for y in GsqlYearDescriptor.all()
-                        .filter('version = ', self.version)
-                        .order('text')]
+            for y in GsqlYearDescriptor.all()
+                            .filter('version = ', self.version)
+                            .order('text')]
 
-    def groups(self):
+    def groups(self, faculty_id=None, year=None):
         self.update_version()
-        return [ {'text': g.text, 'value': g.value}
-        for g in GsqlGroupDescriptor.all()
-                        .filter('version = ', self.version)
-                        .order('text')]
+        if faculty_id is None and year is None:
+            return [ {'text': g.text, 'value': g.value}
+                for g in GsqlGroupDescriptor.all()
+                                .filter('version = ', self.version)
+                                .order('text')]
+        else:
+            request = GsqlGroupData.all().filter('version =', self.version)
+            if year:
+                request = request.filter('year =', year)
+            if faculty_id:
+                request = request.filter('faculty =', faculty_id)
+            filtered = request.run(projection=['group'])
+            filtered_ids = set(map(lambda x: x.group, filtered))
+            result = []
+            for g in self.groups():
+                if g['value'] in filtered_ids:
+                    result.append(g)
+            return result
 
     def groups_data(self, faculty_id=None):
         self.update_version()
