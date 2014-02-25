@@ -322,7 +322,7 @@ def json_response(response_data):
 
 
 def list_groups(request, faculty, year):
-    data = CURRENT_SOURCE().groups(faculty, year)
+    data = SOURCE.groups(faculty, year)
     result = {}
     for item in data:
         result[item['value']] = item['text']
