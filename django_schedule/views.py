@@ -8,6 +8,7 @@ from django.shortcuts import render_to_response
 from django import forms
 from django.template.defaultfilters import register
 from django.template import RequestContext, TemplateSyntaxError
+from django.views.decorators.cache import cache_control
 from django.views.decorators.vary import vary_on_headers
 
 
@@ -321,6 +322,7 @@ def json_response(response_data):
         content_type="application/json; charset=utf-8")
 
 
+@cache_control(max_age=3*60*60)
 def list_groups(request, faculty, year):
     data = SOURCE.groups(faculty, year)
     result = {}

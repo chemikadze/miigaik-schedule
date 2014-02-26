@@ -40,7 +40,7 @@
         $submitButton.prop('disabled', true);
         $groupSelector.empty().prop('disabled', true);
         $.ajax(url, {
-            cache: false,
+            cache: true,
             success: function(data) {
                 console.log(data);
                 onRefreshGroupsFinish(data.groups);
