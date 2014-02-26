@@ -149,5 +149,5 @@ LOGGING = {
 #}
 #
 #CACHE_BACKEND = 'memcached://?timeout=0'
-CACHE_MIDDLEWARE_SECONDS = 60 * 60 * 5 # cache for 5 hours
+CACHE_MIDDLEWARE_SECONDS = 60 * 60 * 24 # cache for 24 hours, flush on cron
 CACHE_BACKEND = 'django_schedule.memcache://?timeout=0'

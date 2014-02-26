@@ -1,4 +1,7 @@
 import logging
+
+from google.appengine.api import memcache
+
 from sources.datamodel import GroupId, LOWER_WEEK, UPPER_WEEK
 from sources.util import empty_data
 from sources.versions import CURRENT_SOURCE
@@ -31,6 +34,7 @@ def main():
                                             site_ds.faculties(),
                                             site_ds.years(),
                                             collected)
+    memcache.flush_all()
     print 'Fetched new version %s' % new_v
 
 
