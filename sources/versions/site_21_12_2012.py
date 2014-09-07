@@ -196,7 +196,8 @@ class HardcodedTimetable(TimeTable):
         4: [_tm(14, 30), _tm(16, 00)],
         5: [_tm(16, 10), _tm(17, 40)],
         6: [_tm(17, 50), _tm(19, 20)],
-        7: [_tm(19, 30), _tm(21, 00)]
+        7: [_tm(19, 30), _tm(21, 00)],
+        8: [_tm(21, 10), _tm(22, 40)]
     }
     sdata = sorted(data.items(), cmp=lambda x, y: cmp(x[0], y[0]))
 
