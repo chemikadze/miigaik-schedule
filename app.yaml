@@ -1,5 +1,5 @@
 application: miigaik-schedule-ng
-version: 1-3-dev-jquery
+version: 1-4-update-fixes
 runtime: python27
 api_version: 1
 
