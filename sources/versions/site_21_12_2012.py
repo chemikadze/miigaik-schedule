@@ -155,15 +155,6 @@ class SiteSource(DataSource):
         return BeautifulSoup(self.request_post(MIIGAIK_SCHEDULE_URL,
                              parameters=self.post_params_for_group(group_id)))
 
-    @classmethod
-    def valid_comp(cls, year, group):
-        nums = {'I': 1, 'II': 2, 'III': 3, 'IV': 4, 'V': 5, 'VI': 6}
-        try:
-            return int(year['text']) == \
-                nums.get(group['text'].split(' ')[1].split('-')[0], 0)
-        except ValueError:
-            return False
-
     @staticmethod
     def classroom_id_from_string(txt):
         if u'воен.' in txt:

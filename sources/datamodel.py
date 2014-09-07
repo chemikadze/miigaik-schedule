@@ -129,6 +129,13 @@ class DataSource(object):
         raise NotImplementedError()
 
     def groups(self, faculty_id=None, year=None):
+        """Returns list of {text: "", value: ""} group items.
+
+        Deprecated, use group_ids instead."""
+        raise NotImplementedError()
+
+    def group_ids(self):
+        """Returns list of (GroupId, group_name) items."""
         raise NotImplementedError()
 
     def groups_data(self, faculty_id=None):
@@ -145,10 +152,6 @@ class DataSource(object):
     def free_classrooms(self, week, day, lessons, building):
         """Returns list of ClassromId's"""
         raise NotImplementedError()
-
-    def valid_comp(self, year, group):
-        raise NotImplementedError()
-
 
 class GroupData(object):
 

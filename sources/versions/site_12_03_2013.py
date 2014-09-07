@@ -41,6 +41,7 @@ class SiteSource(site_21_12_2012.SiteSource):
             find_form(BeautifulSoup(front_page_data)), 'fak')
         years = list()
         groups = list()
+        group_ids = list()
         for faculty in faculties:
             dom = self.soup_for_group(GroupId(faculty['value'], u'', u''))
             new_years = pull_out_list(find_form(dom), 'kurs')
@@ -50,9 +51,17 @@ class SiteSource(site_21_12_2012.SiteSource):
                     GroupId(faculty['value'], year['value'], u''))
                 new_groups = pull_out_list(find_form(gdom), 'grup')
                 groups.extend(new_groups)
+                for new_group in new_groups:
+                    new_id = GroupId(
+                        faculty['value'], year['value'], new_group['value'])
+                    group_ids.append((new_id, new_group['text']))
         self._faculties = sorted(faculties)
         self._years = sorted(uniq(years))
         self._groups = sorted(uniq(groups))
+        self._group_ids = group_ids
+
+    def group_ids(self):
+        return self._group_ids
 
     def row_to_lesson(self, group_id, cols):
         # TODO: remove HTML tags
