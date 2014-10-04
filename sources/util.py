@@ -1,7 +1,7 @@
 # -:- coding: utf-8 -:-
 
 import calendar
-from datetime import timedelta, tzinfo, datetime
+from datetime import timedelta, tzinfo, datetime, date
 import re
 from time import sleep
 from datamodel import UPPER_WEEK, LOWER_WEEK
@@ -61,9 +61,21 @@ def locate(seq, pred, default=None):
     return default
 
 
-def get_week_type(date):
-    weeknum = int(date.strftime('%W'))
-    return (weeknum % 2) and UPPER_WEEK or LOWER_WEEK
+def get_week_type(the_date):
+    if the_date.month < 9:
+        # 6 feb is an approx, assumes 2nd week of feb as upper
+        reference_date = date(the_date.year, 2, 6)
+    else:
+        reference_date = date(the_date.year, 9, 1)
+    if reference_date.isoweekday() > 5:
+        delta = timedelta(8 - reference_date.isoweekday())
+        reference_date = reference_date + delta
+    reference_weeknum = int(reference_date.strftime('%W'))
+    weeknum = int(the_date.strftime('%W'))
+    if (weeknum % 2) == (reference_weeknum % 2):
+        return UPPER_WEEK
+    else:
+        return LOWER_WEEK
 
 
 def current_week():
