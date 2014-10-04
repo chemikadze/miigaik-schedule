@@ -63,7 +63,7 @@ def locate(seq, pred, default=None):
 
 def get_week_type(date):
     weeknum = int(date.strftime('%W'))
-    return (not (weeknum % 2)) and UPPER_WEEK or LOWER_WEEK
+    return (weeknum % 2) and UPPER_WEEK or LOWER_WEEK
 
 
 def current_week():
