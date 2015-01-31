@@ -87,6 +87,7 @@ TEMPLATE_LOADERS = (
 )
 
 MIDDLEWARE_CLASSES = (
+    'django_schedule.middleware.DomainRedirectMiddleware',
     'django.middleware.cache.UpdateCacheMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.cache.FetchFromCacheMiddleware'
@@ -95,6 +96,12 @@ MIDDLEWARE_CLASSES = (
 #    'django.contrib.auth.middleware.AuthenticationMiddleware',
 #    'django.contrib.messages.middleware.MessageMiddleware',
 )
+
+DOMAIN_REDIRECT_MAP = {
+    "127.0.0.1:8080": "localhost:8080",
+    "miigaik-schedule-ng.appspot.com": "miigaik-schedule.ru",
+    "1-4-ads-redirect.miigaik-schedule-ng.appspot.com": "miigaik-schedule.ru",
+}
 
 ROOT_URLCONF = 'urls'
 
