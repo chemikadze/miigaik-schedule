@@ -116,6 +116,17 @@
         {% endblock %}
     </div>
 
+    <div class="content">
+        <h5>Меню</h5>
+        <ul class="navigation-menu">
+            {% block nav %}
+            {% endblock %}
+            <li><a href="{% urle django_schedule.views.free_classrooms %}">Свободные аудитории</a></li>
+            <li><a href="http://studydep.miigaik.ru">Официальный сайт</a></li>
+            <li><a href="/">В начало</a></li>
+        </ul>
+    </div>
+
     <div style="text-align: center">
         <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
         <!-- mobile-big -->
@@ -126,17 +137,6 @@
         <script>
             (adsbygoogle = window.adsbygoogle || []).push({});
         </script>
-    </div>
-
-    <div class="content">
-        <h5>Меню</h5>
-        <ul class="navigation-menu">
-            {% block nav %}
-            {% endblock %}
-            <li><a href="{% urle django_schedule.views.free_classrooms %}">Свободные аудитории</a></li>
-            <li><a href="http://studydep.miigaik.ru">Официальный сайт</a></li>
-            <li><a href="/">В начало</a></li>
-        </ul>
     </div>
 
     <footer>
