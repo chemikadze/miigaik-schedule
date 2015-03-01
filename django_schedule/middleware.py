@@ -13,6 +13,6 @@ class DomainRedirectMiddleware(object):
             new_url = "%s://%s%s" % (
                 request.is_secure() and "https" or "http",
                 redirect_map[request.get_host()],
-                urlquote(request.path))
+                request.get_full_path())
 
             return http.HttpResponsePermanentRedirect(new_url)
