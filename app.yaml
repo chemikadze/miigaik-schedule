@@ -1,5 +1,5 @@
 application: miigaik-schedule-ng
-version: 1-4-ads-mobile-redirect
+version: 1-5-universal-week-ads
 runtime: python27
 api_version: 1
 
