@@ -11,18 +11,21 @@ or [mail me](mailto:chemikadze+miigaik-schedule-ng@gmail.com).
 Contributing
 ============
 
-1. Install GAE
-2. Initialize venv and make linkenv (gae venv hack):
+Install GAE, initialize venv and make linkenv (gae venv hack):
 ```
-$ virtualenv .venv
-$ source .venv/bin/activate
-(.venv)$ pip install git+https://github.com/ze-phyr-us/linkenv.git
-(.venv)$ pip install -r requirements.txt
-(.venv)$ linkenv .venv/lib/python2.7/site-packages gaenv
-(.venv)$ env -i bash -l
-$ dev_appserver.py .
+virtualenv .venv
+source .venv/bin/activate
+pip install git+https://github.com/ze-phyr-us/linkenv.git
+pip install -r requirements.txt
+linkenv .venv/lib/python2.7/site-packages gaenv
+env -i bash -l
 ```
-3. Initialize test dataset
+Start dev server:
 ```
-export
+dev_appserver.py .
+```
+Initialize test dataset
+``` 
+echo 'MIIGAIK_SCHEDULE_IMPORTER_SOURCE=mock.MockDataSource()' > /tmp/.miigaik-env
+open http://localhost:8081/tasks/update_db
 ```
