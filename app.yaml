@@ -1,5 +1,5 @@
 application: miigaik-schedule-ng
-version: 1-5-universal-week-ads
+version: 1-6-raspvuzov2
 runtime: python27
 api_version: 1
 
@@ -17,6 +17,9 @@ handlers:
   login: admin
 - url: /tasks/clean_oldest
   script: garbage_collector.py
+  login: admin
+- url: /tasks/upload_api_v2
+  script: upload_api_v2.py
   login: admin
 - url: .*
   script: main.py

@@ -1,10 +1,15 @@
 #!/usr/bin/env python
 
 import logging
+import os, sys
 
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template, util
 from google.appengine.ext import db
+
+ROOT_PATH = os.path.dirname(__file__)
+sys.path.append(ROOT_PATH)
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'gaenv'))
 
 from sources.gsql_datastore import *
 

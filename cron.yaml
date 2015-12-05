@@ -7,3 +7,7 @@ cron:
   url: /tasks/clean_oldest
   schedule: every day 04:00
   target: update-worker
+- description: daily api sync job
+  url: /tasks/upload_api_v2
+  schedule: every day 05:00
+  target: update-worker
