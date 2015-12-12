@@ -1,17 +1,13 @@
 # -*- coding: utf-8 -*-
 
 import json
-import urllib
-import urllib2
-import urlparse
 import logging
-from datetime import date
 from StringIO import StringIO
+from datetime import date
 
 import requests
-
-from sources.datamodel import UPPER_WEEK, LOWER_WEEK
 from sources import util
+from sources.datamodel import UPPER_WEEK, LOWER_WEEK
 from sources.versions import CURRENT_TIMETABLE
 
 STANDARD_ENDPOINT = "http://api.rvuzov.ru/v2/import"
@@ -19,23 +15,20 @@ MULTIPART_ENDPOINT = "http://api.rvuzov.ru/v2/import/file"
 
 
 def upload_data(data, token, report, multipart=False):
-    _upload_file(data, token, report)
+    _upload_field(data, token, report)
 
 
-# GAE refuses to make requests with URL that large, not used
-def _upload_url(data, token, report):
+def _upload_field(data, token, report):
     payload = json.dumps(data, ensure_ascii=False)
     logging.debug(payload)
     logging.info("uploading %s bytes" % len(payload))
-    template = urlparse.urlparse(STANDARD_ENDPOINT)
-    url_obj = template._replace(query=urllib.urlencode({
-        "type": "json",
-        "data": payload.encode("utf-8"),
-        "token": token,
-        "report": report
-    }))
-    url = urlparse.urlunparse(url_obj)
-    r = requests.post(url)
+    r = requests.post(STANDARD_ENDPOINT,
+                      data={
+                          "type": "json",
+                          "data": payload.encode("utf-8"),
+                          "token": token,
+                          "report": report
+                      })
     logging.info("Response:\n" + r.text)
 
 
@@ -43,16 +36,15 @@ def _upload_file(data, token, report):
     payload = json.dumps(data, ensure_ascii=False)
     logging.debug(payload)
     logging.info("uploading %s bytes" % len(payload))
-    template = urlparse.urlparse(MULTIPART_ENDPOINT)
-    url_obj = template._replace(query=urllib.urlencode({
-        "type": "json",
-        "datafile": "file",
-        "token": token,
-        "report": report
-    }))
-    url = urlparse.urlunparse(url_obj)
-    files = {"file": StringIO(payload)}
-    r = requests.post(url, files=files)
+    r = requests.post(MULTIPART_ENDPOINT,
+                      data={
+                          "type": "json",
+                          "token": token,
+                          "report": report
+                      },
+                      files={
+                          "datafile": StringIO(payload)
+                      })
     logging.info("Response:\n" + r.text)
 
 
@@ -99,9 +91,9 @@ def unfold_week(week_type, week_data):
         lessons_end = date(today.year, 12, 31)
 
     if (util.current_week() == LOWER_WEEK) == bool(date.today().isocalendar()[1] % 2):
-        week = 1 + int(util.current_week() == UPPER_WEEK)
+        week = 1 + int(week_type == UPPER_WEEK)
     else:
-        week = 1 + int(util.current_week() == LOWER_WEEK)
+        week = 1 + int(week_type == LOWER_WEEK)
     for (weekday, schedule) in week_data:
         for lesson in schedule.list():
             generated = {
@@ -125,4 +117,3 @@ def unfold_week(week_type, week_data):
                 generated["subgroups"] = lesson.subdivision.strip()
             acc.append(generated)
     return acc
-
