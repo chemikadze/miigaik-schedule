@@ -83,7 +83,7 @@ def generate_groups(groups_data):
 def unfold_week(week_type, week_data):
     acc = []
     today = date.today()
-    if today.month < 8 and today.day < 20:
+    if today < today.replace(month=8, day=20):
         lessons_begin = date(today.year, 2, 10)
         lessons_end = date(today.year, 5, 31)
     else:
