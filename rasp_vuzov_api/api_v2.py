@@ -80,6 +80,15 @@ def generate_groups(groups_data):
     return acc
 
 
+def _week_type_to_number(week_type):
+    if (util.current_week() == LOWER_WEEK) == bool(date.today().isocalendar()[1] % 2):
+        # upper week is even
+        week = 1 + int(week_type == UPPER_WEEK)
+    else:
+        # else lower week is even
+        week = 1 + int(week_type == LOWER_WEEK)
+
+
 def unfold_week(week_type, week_data):
     acc = []
     today = date.today()
@@ -90,10 +99,7 @@ def unfold_week(week_type, week_data):
         lessons_begin = date(today.year, 9, 1)
         lessons_end = date(today.year, 12, 31)
 
-    if (util.current_week() == LOWER_WEEK) == bool(date.today().isocalendar()[1] % 2):
-        week = 1 + int(week_type == UPPER_WEEK)
-    else:
-        week = 1 + int(week_type == LOWER_WEEK)
+    week = _week_type_to_number(week_type)
     for (weekday, schedule) in week_data:
         for lesson in schedule.list():
             generated = {

@@ -1,6 +1,8 @@
 from django.conf.urls.defaults import *
 import django_schedule
 
+from rasp_vuzov_api import views
+
 # Uncomment the next two lines to enable the admin:
 # from django.contrib import admin
 # admin.autodiscover()
@@ -24,6 +26,8 @@ urlpatterns = patterns('',
     (r'^classrooms/free/', 'django_schedule.views.free_classrooms'),
 
     (r'^api/rasp-vuzov/', include('rasp_vuzov_api.urls')),
+
+    (r'^tasks/upload_api_v2', 'views.api_v2_upload'),
 
     (r'^rest/', include('django_schedule.urls'))
 )

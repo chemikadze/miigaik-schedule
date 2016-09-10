@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
 
 import json
+import time
+import logging
 
 from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseNotFound
-from time import strftime
 
+import api_v2
+import settings
 from sources import CURRENT_SOURCE, CURRENT_TIMETABLE
 from sources.datamodel import GroupId, UPPER_WEEK, LOWER_WEEK
 
@@ -32,6 +35,16 @@ def json_response(response_data):
     return HttpResponse(
         json.dumps(response_data, ensure_ascii=False, encoding='UTF-8'),
         content_type="application/json; charset=utf-8")
+
+
+def api_v2_upload(request):
+    source = CURRENT_SOURCE()
+    logging.info("Uploading version %s" % source.version)
+    start = time.clock()
+    data = api_v2.generate_data(source)
+    api_v2.upload_data(data, settings.RASP_VUZOV_TOKEN, settings.RASP_VUZOV_ADMIN)
+    logging.debug("Upload finished, took %s ms" % ((time.clock() - start) * 1000))
+    return json_response(data)
 
 
 def index(request):

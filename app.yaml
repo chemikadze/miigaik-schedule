@@ -1,5 +1,5 @@
 application: miigaik-schedule-ng
-version: 1-6-fix-dates
+version: 1-6-fix-upperlower
 runtime: python27
 api_version: 1
 
