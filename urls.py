@@ -27,7 +27,8 @@ urlpatterns = patterns('',
 
     (r'^api/rasp-vuzov/', include('rasp_vuzov_api.urls')),
 
-    (r'^tasks/upload_api_v2', 'views.api_v2_upload'),
+    # TODO move from separate entry point
+    # (r'^tasks/upload_api_v2', 'rasp_vuzov_api.views.api_v2_upload'),
 
     (r'^rest/', include('django_schedule.urls'))
 )

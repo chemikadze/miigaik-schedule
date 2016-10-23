@@ -80,13 +80,25 @@ def generate_groups(groups_data):
     return acc
 
 
+def _rasp_vuzov_week_number(input_date):
+    if date(input_date.year, input_date.month, 1).isocalendar()[1] != 1:
+        # check if isocalendar thinks it's last year's week
+        if input_date.isocalendar()[0] != input_date.year:
+            return 1
+        else:
+            return input_date.isocalendar()[1] + 1
+    else:
+        return input_date.isocalendar()[1]
+
+
 def _week_type_to_number(week_type):
-    if (util.current_week() == LOWER_WEEK) == bool(date.today().isocalendar()[1] % 2):
+    if (util.current_week() == LOWER_WEEK) == bool(_rasp_vuzov_week_number(date.today()) % 2):
         # upper week is even
         week = 1 + int(week_type == UPPER_WEEK)
     else:
         # else lower week is even
         week = 1 + int(week_type == LOWER_WEEK)
+    return week
 
 
 def unfold_week(week_type, week_data):
