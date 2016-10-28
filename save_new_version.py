@@ -34,6 +34,8 @@ def main():
                         c += 1
                     else:
                         break
+            else:
+                logging.warn("Skipping group: %s %s %s" % (gid.faculty, gid.year, gid.group))
 
     new_v = GsqlDataSource.save_new_version(site_ds.groups(),
                                             site_ds.faculties(),

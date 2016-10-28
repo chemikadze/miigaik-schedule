@@ -81,7 +81,7 @@ def generate_groups(groups_data):
 
 
 def _rasp_vuzov_week_number(input_date):
-    if date(input_date.year, input_date.month, 1).isocalendar()[1] != 1:
+    if date(input_date.year, 1, 1).isocalendar()[1] != 1:
         # check if isocalendar thinks it's last year's week
         if input_date.isocalendar()[0] != input_date.year:
             return 1
