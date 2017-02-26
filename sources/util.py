@@ -63,8 +63,8 @@ def locate(seq, pred, default=None):
 
 def get_week_type(the_date):
     if the_date.month < 9:
-        # 6 feb is an approx, assumes 2nd week of feb as upper
-        reference_date = date(the_date.year, 2, 6)
+        # 15 feb is an approx, assumes 3rd week of feb as upper
+        reference_date = date(the_date.year, 2, 15)
     else:
         reference_date = date(the_date.year, 9, 1)
     if reference_date.isoweekday() > 5:
